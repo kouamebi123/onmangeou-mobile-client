@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, useState } from 'react';
+import { createElement, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import type { RestaurantSummary } from '@/api/discovery';
@@ -241,11 +241,24 @@ export function DiscoveryMap({
   onOpenRef.current = onOpenRestaurant;
   onRegionRef.current = onRegionSettled;
 
+  const syncMarkersInEffect = useEffectEvent((maplibregl: MapLibreModule, map: MapInstance) => {
+    syncMarkers(maplibregl, map);
+  });
+  const revealClosestInEffect = useEffectEvent((maplibregl: MapLibreModule, map: MapInstance, force = false) => {
+    revealClosestIfNeeded(maplibregl, map, force);
+  });
+  const focusRestaurantInEffect = useEffectEvent(
+    (maplibregl: MapLibreModule, map: MapInstance, restaurant: RestaurantSummary) => {
+      focusRestaurant(maplibregl, map, restaurant);
+    },
+  );
+
   useEffect(() => {
     let cancelled = false;
     let observer: ResizeObserver | undefined;
     let regionTimer: ReturnType<typeof setTimeout> | undefined;
     const host = hostRef.current;
+    const markers = markersRef.current;
     if (!host) {
       return;
     }
@@ -273,13 +286,13 @@ export function DiscoveryMap({
 
         map.on('load', () => {
           map.resize();
-          syncMarkers(maplibregl, map);
-          revealClosestIfNeeded(maplibregl, map);
+          syncMarkersInEffect(maplibregl, map);
+          revealClosestInEffect(maplibregl, map);
         });
         map.on('idle', () => {
           if (markersRef.current.size === 0 && restaurantsRef.current.length > 0) {
-            syncMarkers(maplibregl, map);
-            revealClosestIfNeeded(maplibregl, map);
+            syncMarkersInEffect(maplibregl, map);
+            revealClosestInEffect(maplibregl, map);
           }
         });
 
@@ -289,10 +302,10 @@ export function DiscoveryMap({
           }
         });
         map.on('zoomend', () => {
-          syncMarkers(maplibregl, map);
+          syncMarkersInEffect(maplibregl, map);
         });
         map.on('moveend', () => {
-          syncMarkers(maplibregl, map);
+          syncMarkersInEffect(maplibregl, map);
           if (!userMovedRef.current || !interactive) {
             return;
           }
@@ -336,10 +349,10 @@ export function DiscoveryMap({
       }
       observer?.disconnect();
       popupRef.current?.remove();
-      for (const entry of markersRef.current.values()) {
+      for (const entry of markers.values()) {
         entry.marker.remove();
       }
-      markersRef.current.clear();
+      markers.clear();
       userMarkerRef.current?.remove();
       mapRef.current?.remove();
       mapRef.current = null;
@@ -354,13 +367,13 @@ export function DiscoveryMap({
     }
     if (!map.isStyleLoaded()) {
       map.once('idle', () => {
-        syncMarkers(lib, map);
-        revealClosestIfNeeded(lib, map, Boolean(userRef.current) && !userMovedRef.current);
+        syncMarkersInEffect(lib, map);
+        revealClosestInEffect(lib, map, Boolean(userRef.current) && !userMovedRef.current);
       });
       return;
     }
-    syncMarkers(lib, map);
-    revealClosestIfNeeded(lib, map, Boolean(userRef.current) && !userMovedRef.current);
+    syncMarkersInEffect(lib, map);
+    revealClosestInEffect(lib, map, Boolean(userRef.current) && !userMovedRef.current);
   }, [restaurants, userLocation]);
 
   useEffect(() => {
@@ -373,8 +386,8 @@ export function DiscoveryMap({
     if (!map || !lib) {
       return;
     }
-    syncMarkers(lib, map);
-    revealClosestIfNeeded(lib, map, true);
+    syncMarkersInEffect(lib, map);
+    revealClosestInEffect(lib, map, true);
   }, [recenterKey]);
 
   useEffect(() => {
@@ -388,7 +401,7 @@ export function DiscoveryMap({
     const map = mapRef.current;
     const lib = libRef.current;
     if (selected && map && lib && interactive) {
-      focusRestaurant(lib, map, selected);
+      focusRestaurantInEffect(lib, map, selected);
     }
   }, [interactive, selectedId]);
 
