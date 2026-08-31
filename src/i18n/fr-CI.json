@@ -1,0 +1,194 @@
+{
+  "app": {
+    "name": "OnMangeOù"
+  },
+  "tabs": {
+    "home": "Accueil",
+    "explore": "Explorer",
+    "orders": "Commandes",
+    "favorites": "Favoris",
+    "profile": "Profil"
+  },
+  "common": {
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "continue": "Continuer",
+    "loading": "Chargement…",
+    "open": "Ouvert",
+    "closed": "Fermé",
+    "search": "Rechercher",
+    "city": "Ville",
+    "openNow": "Ouvert maintenant",
+    "all": "Tous",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "required": "Connexion requise",
+    "changePhone": "Changer de numéro"
+  },
+  "offline": {
+    "banner": "Connexion faible : vos modifications seront synchronisées."
+  },
+  "empty": {
+    "restaurants": "Aucun restaurant pour ces filtres.",
+    "restaurantsDetail": "Essayez un autre quartier ou retirez le filtre « ouvert maintenant ».",
+    "favorites": "Vous n'avez pas encore de favori.",
+    "favoritesDetail": "Ouvrez une fiche restaurant et touchez « Ajouter aux favoris ».",
+    "menu": "Le menu n'est pas encore publié.",
+    "generic": "Rien à afficher pour le moment."
+  },
+  "errors": {
+    "generic": "Quelque chose n'a pas fonctionné. Réessayez.",
+    "network": "Vérifiez votre connexion puis réessayez."
+  },
+  "comingSoon": {
+    "title": "Bientôt",
+    "orders": "Le suivi des commandes arrive bientôt."
+  },
+  "orders": {
+    "hero": "Vos passages au maquis, au même endroit.",
+    "empty": "Aucune commande pour le moment.",
+    "emptyDetail": "Ajoutez un plat depuis une fiche restaurant, puis validez le retrait.",
+    "exploreCta": "Explorer les restaurants",
+    "cart": "Panier",
+    "cartEmpty": "Votre panier est vide.",
+    "seeCart": "Voir le panier · {count}",
+    "add": "Ajouter",
+    "place": "Valider la commande",
+    "placing": "Envoi…",
+    "notes": "Note pour le restaurant",
+    "needAuth": "Connectez-vous pour envoyer la commande.",
+    "ref": "Commande {ref}",
+    "cancel": "Annuler la commande",
+    "confirmPickup": "J’ai récupéré",
+    "status": {
+      "PENDING_PAYMENT": "Paiement en attente",
+      "PENDING_RESTAURANT": "En attente du restaurant",
+      "ACCEPTED": "Acceptée",
+      "PREPARING": "En préparation",
+      "READY": "Prête à retirer",
+      "COMPLETED": "Récupérée",
+      "REJECTED": "Refusée",
+      "CANCELLED": "Annulée"
+    }
+  },
+  "home": {
+    "greeting": "Bonjour",
+    "title": "Où manger près de vous ?",
+    "subtitle": "Menus et horaires près de vous, sans créer de compte.",
+    "city": "Abidjan",
+    "openNowTitle": "Ouverts maintenant",
+    "allTitle": "Tous les restaurants"
+  },
+  "map": {
+    "title": "Carte",
+    "openExplore": "Plein écran",
+    "modeMap": "Carte",
+    "modeList": "Liste",
+    "searchArea": "Rechercher dans cette zone",
+    "nearby": "{count} adresses",
+    "expandList": "Voir la liste",
+    "collapseList": "Réduire la liste",
+    "you": "Vous êtes ici",
+    "locate": "Ma position",
+    "locateDenied": "Autorisez la position pour voir les restaurants autour de vous.",
+    "outOfZone": "Aucun restaurant près de vous. On affiche les plus proches.",
+    "distanceMeters": "{meters} m",
+    "distanceKm": "{km} km",
+    "closesAt": "Ferme à {time}",
+    "opensAt": "Ouvre à {time}",
+    "filterOpen": "Ouvert",
+    "filterHalal": "Halal",
+    "filterVegetarian": "Végétarien",
+    "filterTakeaway": "À emporter",
+    "filterDelivery": "Livraison",
+    "filterReservation": "Réservation",
+    "filterDineIn": "Sur place",
+    "filterBudget": "Moins de 3 000",
+    "filterTerrace": "Terrasse",
+    "filterAc": "Clim",
+    "filterAccessible": "Accessible"
+  },
+  "explore": {
+    "title": "Explorer",
+    "subtitle": "Un plat, un restaurant ou un quartier.",
+    "placeholder": "Restaurant, plat, quartier…",
+    "suggestionRestaurant": "Restaurant",
+    "suggestionDish": "Plat"
+  },
+  "restaurant": {
+    "favoriteAdd": "Ajouter aux favoris",
+    "favoriteRemove": "Retirer des favoris",
+    "favoriteShort": "Ajouter",
+    "favoriteRemoveShort": "Retirer",
+    "menu": "Carte",
+    "unavailable": "Ce plat n'est plus disponible pour ce créneau.",
+    "prep": "Environ {minutes} min",
+    "hours": "Horaires",
+    "call": "Appeler",
+    "directions": "Itinéraire",
+    "verified": "Vérifié",
+    "everyday": "Tous les jours",
+    "back": "Retour",
+    "info": "Adresse",
+    "dineIn": "Sur place",
+    "takeaway": "À emporter",
+    "delivery": "Livraison",
+    "reservation": "Réservation",
+    "hoursMore": "Voir la semaine",
+    "hoursLess": "Réduire",
+    "order": "Commander",
+    "priceFrom": "Dès {price}",
+    "todayHours": "Aujourd’hui"
+  },
+  "weekdays": {
+    "MONDAY": "Lundi",
+    "TUESDAY": "Mardi",
+    "WEDNESDAY": "Mercredi",
+    "THURSDAY": "Jeudi",
+    "FRIDAY": "Vendredi",
+    "SATURDAY": "Samedi",
+    "SUNDAY": "Dimanche"
+  },
+  "favorites": {
+    "title": "Vos favoris",
+    "subtitle": "Les adresses que vous voulez retrouver.",
+    "count": "{count} adresses",
+    "guestTitle": "Gardez vos adresses",
+    "guestLead": "Connectez-vous pour retrouver vos restaurants préférés."
+  },
+  "profile": {
+    "title": "Profil",
+    "anonymous": "Parcourez librement. Connectez-vous pour enregistrer vos favoris.",
+    "phone": "Téléphone",
+    "name": "Nom",
+    "guestName": "Invité",
+    "guestTitle": "Bienvenue chez vous",
+    "guestLead": "Un compte pour garder vos adresses, rien de plus.",
+    "signedIn": "Connecté",
+    "benefitFavorites": "Favoris",
+    "benefitFavoritesDetail": "Enregistrez les restaurants que vous voulez revoir.",
+    "benefitPlaces": "Carte",
+    "benefitPlacesDetail": "Retrouvez vos adresses en un geste.",
+    "benefitSoon": "Commandes",
+    "benefitSoonDetail": "Suivez le retrait dès que le restaurant accepte.",
+    "openFavorites": "Mes favoris",
+    "openExplore": "Explorer la carte"
+  },
+  "auth": {
+    "kicker": "Espace client",
+    "lede": "Un numéro suffit pour commander et garder vos adresses.",
+    "title": "Connexion",
+    "phoneLabel": "Numéro de téléphone",
+    "phonePlaceholder": "0701020304",
+    "codeLabel": "Code reçu par SMS",
+    "sendCode": "Recevoir le code",
+    "verify": "Valider le code",
+    "devCode": "Code de test : {code}"
+  },
+  "dish": {
+    "vegetarian": "Végétarien",
+    "halal": "Halal",
+    "allergens": "Allergènes : {list}"
+  }
+}
