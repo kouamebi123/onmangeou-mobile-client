@@ -19,8 +19,6 @@ export function MapBottomSheet({
   onToggle: () => void;
   onSelect: (id: string) => void;
 }) {
-  const selected = restaurants.find((item) => item.id === selectedId) ?? restaurants[0];
-
   return (
     <View style={[styles.sheet, expanded ? styles.sheetExpanded : styles.sheetPeek]}>
       <Pressable
@@ -31,28 +29,31 @@ export function MapBottomSheet({
       >
         <View style={styles.handle} />
         <AppText variant="caption" color={tokens.color.brand.deep} style={styles.count}>
-          {t('map.nearby', { count: String(restaurants.length) })}
+          {expanded
+            ? t('map.nearby', { count: String(restaurants.length) })
+            : t('map.nearbyPeek', { count: String(restaurants.length) })}
         </AppText>
       </Pressable>
-      {expanded ? (
-        <ScrollView contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled">
+      {restaurants.length === 0 ? (
+        <AppText variant="muted">{t('empty.restaurants')}</AppText>
+      ) : (
+        <ScrollView
+          horizontal={!expanded}
+          showsHorizontalScrollIndicator={false}
+          style={expanded ? styles.listExpanded : undefined}
+          contentContainerStyle={[styles.list, !expanded ? styles.listHorizontal : null]}
+          keyboardShouldPersistTaps="handled"
+        >
           {restaurants.map((restaurant) => (
-            <RestaurantRow
-              key={restaurant.id}
-              restaurant={restaurant}
-              selected={restaurant.id === selectedId}
-              onPress={() => onSelect(restaurant.id)}
-            />
+            <View key={restaurant.id} style={expanded ? undefined : styles.peekCard}>
+              <RestaurantRow
+                restaurant={restaurant}
+                selected={restaurant.id === selectedId}
+                onPress={() => onSelect(restaurant.id)}
+              />
+            </View>
           ))}
         </ScrollView>
-      ) : selected ? (
-        <RestaurantRow
-          restaurant={selected}
-          selected
-          onPress={() => onSelect(selected.id)}
-        />
-      ) : (
-        <AppText variant="muted">{t('empty.restaurants')}</AppText>
       )}
     </View>
   );
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
     paddingBottom: tokens.spacing.md,
     gap: tokens.spacing.sm,
   },
-  sheetPeek: { maxHeight: 168 },
+  sheetPeek: { maxHeight: 196 },
   sheetExpanded: { maxHeight: 320 },
   handleHit: { alignItems: 'center', paddingTop: tokens.spacing.sm, gap: tokens.spacing.xs },
   handle: {
@@ -80,5 +81,8 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.color.border.default,
   },
   count: { fontFamily: tokens.typography.family.semibold },
+  listExpanded: { flex: 1 },
   list: { gap: tokens.spacing.sm, paddingBottom: tokens.spacing.sm },
+  listHorizontal: { paddingRight: tokens.spacing.md },
+  peekCard: { width: 300 },
 });

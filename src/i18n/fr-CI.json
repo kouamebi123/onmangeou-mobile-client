@@ -87,6 +87,7 @@
     "modeList": "Liste",
     "searchArea": "Rechercher dans cette zone",
     "nearby": "{count} adresses",
+    "nearbyPeek": "{count} adresses · faire défiler",
     "expandList": "Voir la liste",
     "collapseList": "Réduire la liste",
     "you": "Vous êtes ici",
