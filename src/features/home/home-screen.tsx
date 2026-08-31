@@ -105,7 +105,7 @@ export function HomeScreen() {
 
       {openItems.length > 0 && !openNow ? (
         <>
-          <SectionHeading title={t('home.openNowTitle')} />
+          <SectionHeading title={t('home.allTitle')} />
           {openItems.slice(0, 3).map((restaurant) => (
             <RestaurantCard key={`open-${restaurant.id}`} restaurant={restaurant} featured />
           ))}
@@ -114,7 +114,7 @@ export function HomeScreen() {
 
       {items.length > 0 ? (
         <>
-          <SectionHeading title={t('home.allTitle')} />
+          <SectionHeading title={t('home.openNowTitle')} />
           {items.map((restaurant) => (
             <RestaurantCard key={restaurant.id} restaurant={restaurant} />
           ))}
