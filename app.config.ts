@@ -7,8 +7,14 @@ const config: ExpoConfig = {
   extra: {
     eas: { projectId: 'b99b0cce-bdc3-4628-9513-2f4cb79fd65e' },
   },
+  updates: {
+    url: 'https://u.expo.dev/b99b0cce-bdc3-4628-9513-2f4cb79fd65e',
+  },
+  runtimeVersion: {
+    policy: 'sdkVersion',
+  },
   version: '0.1.0',
-  orientation: 'portrait',
+  sdkVersion: '54.0.0',
   icon: './assets/images/icon.png',
   scheme: 'onmangeou',
   userInterfaceStyle: 'light',
@@ -16,6 +22,9 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: 'ci.onmangeou.client',
     icon: './assets/expo.icon',
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     config: { googleMaps: { apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY ?? '' } },
