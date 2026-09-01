@@ -199,9 +199,53 @@
     "verify": "Valider le code",
     "devCode": "Code de test : {code}"
   },
+  "orders": {
+    "hero": "Vos passages au maquis, au même endroit.",
+    "empty": "Aucune commande pour le moment.",
+    "emptyDetail": "Ajoutez un plat depuis une fiche restaurant, puis validez le retrait.",
+    "exploreCta": "Explorer les restaurants",
+    "cart": "Panier",
+    "cartEmpty": "Votre panier est vide.",
+    "seeCart": "Voir le panier · {count}",
+    "add": "Ajouter",
+    "place": "Valider la commande",
+    "placing": "Envoi…",
+    "notes": "Note pour le restaurant",
+    "needAuth": "Connectez-vous pour envoyer la commande.",
+    "ref": "Commande {ref}",
+    "cancel": "Annuler la commande",
+    "confirmPickup": "J'ai récupéré",
+    "status": {
+      "PENDING_PAYMENT": "Paiement en attente",
+      "PENDING_RESTAURANT": "En attente du restaurant",
+      "ACCEPTED": "Acceptée",
+      "PREPARING": "En préparation",
+      "READY": "Prête à retirer",
+      "COMPLETED": "Récupérée",
+      "REJECTED": "Refusée",
+      "CANCELLED": "Annulée"
+    }
+  },
   "dish": {
     "vegetarian": "Végétarien",
     "halal": "Halal",
     "allergens": "Allergènes : {list}"
+  },
+  "modules": {
+    "storefront.basic": "Vitrine",
+    "catalog.advanced": "Catalogue avancé",
+    "orders.marketplace": "Commandes en ligne",
+    "orders.manual": "Commandes de salle",
+    "reservations.tables": "Réservations",
+    "payments.online": "Paiement en ligne",
+    "cash.register": "Caisse",
+    "finance.expenses": "Dépenses",
+    "finance.credits": "Crédits et dettes",
+    "inventory.simple": "Stock simple",
+    "inventory.ingredients": "Stock par ingrédients",
+    "delivery.internal": "Livraison interne",
+    "marketing.promotions": "Promotions",
+    "analytics.advanced": "Statistiques avancées",
+    "organization.multisite": "Multi-établissements"
   }
 }
