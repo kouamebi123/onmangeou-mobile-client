@@ -47,6 +47,7 @@ export function ExploreScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [appliedRegion, setAppliedRegion] = useState<MapRegion | null>(null);
+  const [pendingRegion, setPendingRegion] = useState<MapRegion | null>(null);
   const [recenterKey, setRecenterKey] = useState(0);
   const [locating, setLocating] = useState(false);
 
@@ -100,7 +101,7 @@ export function ExploreScreen() {
         filters.airConditioning ||
         filters.accessible ||
         filters.budget;
-      if (first.items.length > 0 || Boolean(intent.q) || anyFilter) {
+      if (first.items.length > 0 || Boolean(intent.q) || intent.openNow || anyFilter || appliedRegion) {
         return first;
       }
       return discoverRestaurants({
@@ -113,8 +114,16 @@ export function ExploreScreen() {
   });
 
   const fetched = restaurants.data?.items ?? [];
-  const nearby = fetched.filter((item) => (item.distanceMeters ?? Number.POSITIVE_INFINITY) <= OUT_OF_ZONE_METERS);
-  const items = nearby.length > 0 ? nearby : fetched;
+  // Do not silently discard API results using a second, moving distance cutoff.
+  const requiredServices = [
+    filters.delivery && 'DELIVERY',
+    filters.reservation && 'RESERVATION',
+    filters.dineIn && 'DINE_IN',
+    filters.takeaway && 'TAKEAWAY',
+  ].filter((service): service is string => Boolean(service));
+  const items = fetched.filter((restaurant) =>
+    requiredServices.every((service) => restaurant.services.includes(service)),
+  );
   const outOfZone =
     Boolean(coords) &&
     !appliedRegion &&
@@ -138,12 +147,14 @@ export function ExploreScreen() {
       onChangeText={setQuery}
       onSubmit={() => {
         setAppliedRegion(null);
+        setPendingRegion(null);
+        setSelectedId(null);
         setSubmitted(query.trim());
       }}
       onPickSuggestion={applySuggestion}
       filters={filters}
       onToggleFilter={(key) => {
-        setAppliedRegion(null);
+        setSelectedId(null);
         setFilters((current) => ({ ...current, [key]: !current[key] }));
       }}
     />
@@ -217,11 +228,25 @@ export function ExploreScreen() {
           recenterKey={recenterKey}
           onSelect={setSelectedId}
           onOpenRestaurant={(slug) => router.push(`/restaurant/${slug}`)}
-          onRegionSettled={setAppliedRegion}
+          onRegionSettled={setPendingRegion}
         />
         <View style={styles.overlay}>
           {search}
           <View style={styles.modeRow}>
+            {pendingRegion ? (
+              <Pressable
+                accessibilityRole="button"
+                disabled={restaurants.isFetching}
+                onPress={() => {
+                  setAppliedRegion(pendingRegion);
+                  setPendingRegion(null);
+                  setSelectedId(null);
+                }}
+                style={styles.modeChip}
+              >
+                <AppText variant="caption">{t('map.searchArea')}</AppText>
+              </Pressable>
+            ) : null}
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ selected: true }}
@@ -249,10 +274,16 @@ export function ExploreScreen() {
               onPress={() => {
                 void (async () => {
                   setLocating(true);
-                  setAppliedRegion(null);
-                  await refresh({ fresh: true });
-                  setRecenterKey((value) => value + 1);
-                  setLocating(false);
+                  try {
+                    const next = await refresh({ fresh: true });
+                    if (next) {
+                      setAppliedRegion(null);
+                      setPendingRegion(null);
+                      setRecenterKey((value) => value + 1);
+                    }
+                  } finally {
+                    setLocating(false);
+                  }
                 })();
               }}
               style={styles.locate}
@@ -320,7 +351,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.spacing.sm,
     backgroundColor: 'transparent',
   },
-  modeRow: { flexDirection: 'row', gap: tokens.spacing.sm },
+  modeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.spacing.sm },
   modeChip: {
     backgroundColor: tokens.color.surface.white,
     borderRadius: tokens.radius.pill,

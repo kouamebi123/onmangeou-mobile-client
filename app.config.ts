@@ -14,6 +14,7 @@ const config: ExpoConfig = {
     icon: './assets/expo.icon',
   },
   android: {
+    config: { googleMaps: { apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY ?? '' } },
     adaptiveIcon: {
       backgroundColor: '#173B36',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -29,6 +30,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    ['expo-location', { locationWhenInUsePermission: 'Autoriser OnMangeOù à trouver les restaurants à proximité.' }],
     [
       'expo-splash-screen',
       {

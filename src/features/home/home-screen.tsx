@@ -46,7 +46,7 @@ export function HomeScreen() {
       <View style={styles.hero}>
         <HeroBlobs />
         <View style={styles.logoWrap}>
-          <Logo variant="dark" height={72} />
+          <Logo variant="dark" height={144} />
         </View>
         <AppText variant="title" color={tokens.color.text.onBrand}>
           {t('home.title')}

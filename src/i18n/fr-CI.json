@@ -1,4 +1,16 @@
 {
+  "payments": {
+    "simulation": "Mode démonstration : aucun débit réel. Les moyens affichés ne sont pas encore connectés à leurs opérateurs.",
+    "simulate": "Simuler le paiement (aucun débit)",
+    "unavailable": "Ce moyen de paiement n’est pas disponible."
+  },
+  "onboarding": {
+    "title": "Comment vous appelez-vous ?",
+    "detail": "Votre numéro est vérifié. Ajoutez votre nom pour terminer votre inscription.",
+    "name": "Votre nom",
+    "save": "Continuer",
+    "signOut": "Se déconnecter"
+  },
   "app": {
     "name": "OnMangeOù"
   },

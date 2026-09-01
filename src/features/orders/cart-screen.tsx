@@ -1,4 +1,5 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { rememberOrder } from './order-cache';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -21,6 +22,8 @@ import { formatFcfa } from '@/theme/format-fcfa';
 
 export function CartScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const sessionId = useAuthStore((state) => state.sessionId);
   const accessToken = useAuthStore((state) => state.accessToken);
   const establishmentId = useCartStore((state) => state.establishmentId);
   const establishmentName = useCartStore((state) => state.establishmentName);
@@ -31,7 +34,7 @@ export function CartScreen() {
   const clear = useCartStore((state) => state.clear);
   const [notes, setNotes] = useState('');
   const [formError, setFormError] = useState<string | undefined>();
-  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'WAVE' | 'ORANGE_MONEY' | 'CARD'>('CASH');
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'WAVE' | 'WERO' | 'ORANGE_MONEY' | 'MTN' | 'MOOV' | 'CARD'>('CASH');
   const [service, setService] = useState<'TAKEAWAY' | 'DINE_IN' | 'DELIVERY'>('TAKEAWAY');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [scheduledFor, setScheduledFor] = useState('');
@@ -57,9 +60,12 @@ export function CartScreen() {
       { id: 'CASH', label: 'Espèces' },
       ...(canPayOnline
         ? ([
-            { id: 'WAVE', label: 'WAVE' },
-            { id: 'ORANGE_MONEY', label: 'Orange' },
-            { id: 'CARD', label: 'CARD' },
+            { id: 'WAVE', label: 'Wave' },
+            { id: 'WERO', label: 'Wero' },
+            { id: 'ORANGE_MONEY', label: 'Orange Money' },
+            { id: 'MTN', label: 'MTN MoMo' },
+            { id: 'MOOV', label: 'Moov Money' },
+            { id: 'CARD', label: 'Carte' },
           ] as const)
         : []),
     ] as const
@@ -95,7 +101,8 @@ export function CartScreen() {
         deliveryAddress: service === 'DELIVERY' ? deliveryAddress.trim() || undefined : undefined,
         scheduledFor: scheduledFor.trim() ? new Date(scheduledFor).toISOString() : undefined,
       }),
-    onSuccess: (order) => {
+    onSuccess: async (order) => {
+      await rememberOrder(queryClient, sessionId, order);
       clear();
       router.replace(`/order/${order.id}`);
     },
@@ -173,6 +180,7 @@ export function CartScreen() {
             ))}
           </View>
           <TextField label={t('orders.notes')} value={notes} onChangeText={setNotes} multiline />
+          {paymentMethod !== 'CASH' ? <AppText>{t('payments.simulation')}</AppText> : null}
           <View style={styles.total}>
             <AppText variant="muted">{t('orders.cart')}</AppText>
             <AppText variant="title">{quote.data?.total.formatted ?? formatFcfa(String(totalAmount))}</AppText>

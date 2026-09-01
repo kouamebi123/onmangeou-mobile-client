@@ -16,14 +16,17 @@ import { Screen } from '@/components/screen';
 import { Skeleton } from '@/components/skeleton';
 import { t } from '@/i18n';
 import { tokens } from '@/theme';
+import { useAuthStore } from '@/store/auth-store';
+import { orderKeys } from './order-cache';
 
 export function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const sessionId = useAuthStore((state) => state.sessionId);
 
   const detail = useQuery({
-    queryKey: ['orders', id],
+    queryKey: orderKeys.detail(sessionId, id ?? ''),
     queryFn: () => fetchOrder(id ?? ''),
     enabled: Boolean(id),
     refetchInterval: 8000,
@@ -46,7 +49,9 @@ export function OrderDetailScreen() {
   const [reviewBody, setReviewBody] = useState('');
   const pay = useMutation({
     mutationFn: async () => {
-      const intent = await createPaymentIntent(id ?? '', 'WAVE');
+      const method = detail.data?.paymentMethod;
+      if (!method || method === 'CASH') throw new Error(t('payments.unavailable'));
+      const intent = await createPaymentIntent(id ?? '', method);
       return confirmPayment(intent.id);
     },
     onSuccess: invalidate,
@@ -80,7 +85,8 @@ export function OrderDetailScreen() {
       ? cancel.error.problem.detail
       : pickup.error instanceof ApiError
         ? pickup.error.problem.detail
-        : undefined;
+        : cancel.error || pickup.error || pay.error || review.error
+          ? t('errors.generic') : undefined;
 
   return (
     <Screen>
@@ -118,12 +124,12 @@ export function OrderDetailScreen() {
 
       {order.status === 'PENDING_PAYMENT' ? (
         <Button
-          label="Payer (sandbox Wave)"
+          label={t('payments.simulate')}
           loading={pay.isPending}
           onPress={() => pay.mutate()}
         />
       ) : null}
-      {order.status === 'PENDING_RESTAURANT' ? (
+      {order.status === 'PENDING_RESTAURANT' || order.status === 'PENDING_PAYMENT' ? (
         <Button
           label={t('orders.cancel')}
           variant="outline"

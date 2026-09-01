@@ -29,6 +29,7 @@ export interface OrderView {
   establishmentSlug: string;
   status: OrderStatus;
   service: string;
+  paymentMethod?: 'CASH' | 'WAVE' | 'WERO' | 'ORANGE_MONEY' | 'MTN' | 'MOOV' | 'CARD';
   customerName: string;
   customerPhone: string;
   notes: string | null;
@@ -42,7 +43,7 @@ export async function createOrder(input: {
   items: Array<{ productId: string; quantity: number }>;
   customerName?: string;
   notes?: string;
-  paymentMethod?: 'CASH' | 'WAVE' | 'ORANGE_MONEY' | 'MTN' | 'CARD';
+  paymentMethod?: 'CASH' | 'WAVE' | 'WERO' | 'ORANGE_MONEY' | 'MTN' | 'MOOV' | 'CARD';
   service?: 'TAKEAWAY' | 'DINE_IN' | 'DELIVERY';
   deliveryAddress?: string;
   scheduledFor?: string;
