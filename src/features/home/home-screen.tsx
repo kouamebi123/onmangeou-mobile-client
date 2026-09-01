@@ -16,6 +16,7 @@ import { SearchBar } from '@/components/search-bar';
 import { SectionHeading } from '@/components/section-heading';
 import { Skeleton } from '@/components/skeleton';
 import { useUserLocation } from '@/features/explore/user-location';
+import { buildHomeSections } from './restaurant-sections';
 import { t } from '@/i18n';
 import { tokens } from '@/theme';
 
@@ -39,8 +40,7 @@ export function HomeScreen() {
     placeholderData: keepPreviousData,
   });
 
-  const items = restaurants.data?.items ?? [];
-  const openItems = items.filter((item) => item.open);
+  const { items, featured, remaining } = buildHomeSections(restaurants.data?.items ?? [], openNow);
 
   return (
     <Screen>
@@ -109,19 +109,21 @@ export function HomeScreen() {
         <EmptyState title={t('empty.restaurants')} detail={t('empty.restaurantsDetail')} />
       ) : null}
 
-      {openItems.length > 0 && !openNow ? (
+      {featured.length > 0 ? (
         <>
-          <SectionHeading title={t('home.allTitle')} />
-          {openItems.slice(0, 3).map((restaurant) => (
+          <SectionHeading title={t('home.openNowTitle')} />
+          {featured.map((restaurant) => (
             <RestaurantCard key={`open-${restaurant.id}`} restaurant={restaurant} featured />
           ))}
         </>
       ) : null}
 
-      {items.length > 0 ? (
+      {remaining.length > 0 ? (
         <>
-          <SectionHeading title={t('home.openNowTitle')} />
-          {items.map((restaurant) => (
+          <SectionHeading
+            title={t(openNow ? 'home.openNowTitle' : featured.length > 0 ? 'home.otherTitle' : 'home.allTitle')}
+          />
+          {remaining.map((restaurant) => (
             <RestaurantCard key={restaurant.id} restaurant={restaurant} />
           ))}
         </>

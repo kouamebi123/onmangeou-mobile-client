@@ -90,7 +90,8 @@
     "subtitle": "Menus et horaires près de vous, sans créer de compte.",
     "city": "Abidjan",
     "openNowTitle": "Ouverts maintenant",
-    "allTitle": "Tous les restaurants"
+    "allTitle": "Tous les restaurants",
+    "otherTitle": "Autres restaurants"
   },
   "map": {
     "title": "Carte",
