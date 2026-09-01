@@ -1,4 +1,4 @@
-import { createElement, useEffect, useEffectEvent, useRef, useState } from 'react';
+import { createElement, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import type { RestaurantSummary } from '@/api/discovery';
@@ -132,6 +132,18 @@ function popupHtml(restaurant: RestaurantSummary): string {
   `;
 }
 
+/** Equivalent de useEffectEvent (React 19.2) compatible React 19.1 / SDK 54. */
+function useStableCallback<Args extends unknown[]>(
+  callback: (...args: Args) => void,
+): (...args: Args) => void {
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+  const stableRef = useRef((...args: Args) => {
+    callbackRef.current(...args);
+  });
+  return stableRef.current;
+}
+
 export function DiscoveryMap({
   restaurants,
   selectedId,
@@ -165,13 +177,15 @@ export function DiscoveryMap({
   onOpenRef.current = onOpenRestaurant;
   onRegionRef.current = onRegionSettled;
 
-  const syncMarkersInEffect = useEffectEvent((maplibregl: MapLibreModule, map: MapInstance) => {
+  const syncMarkersInEffect = useStableCallback((maplibregl: MapLibreModule, map: MapInstance) => {
     syncMarkers(maplibregl, map);
   });
-  const revealClosestInEffect = useEffectEvent((maplibregl: MapLibreModule, map: MapInstance, force = false) => {
-    revealClosestIfNeeded(maplibregl, map, force);
-  });
-  const focusRestaurantInEffect = useEffectEvent(
+  const revealClosestInEffect = useStableCallback(
+    (maplibregl: MapLibreModule, map: MapInstance, force: boolean = false) => {
+      revealClosestIfNeeded(maplibregl, map, force);
+    },
+  );
+  const focusRestaurantInEffect = useStableCallback(
     (maplibregl: MapLibreModule, map: MapInstance, restaurant: RestaurantSummary) => {
       focusRestaurant(maplibregl, map, restaurant);
     },
@@ -282,7 +296,7 @@ export function DiscoveryMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [interactive]);
+  }, [interactive, syncMarkersInEffect, revealClosestInEffect]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -299,7 +313,7 @@ export function DiscoveryMap({
     }
     syncMarkersInEffect(lib, map);
     revealClosestInEffect(lib, map, Boolean(userRef.current) && !userMovedRef.current);
-  }, [restaurants, userLocation]);
+  }, [restaurants, userLocation, syncMarkersInEffect, revealClosestInEffect]);
 
   useEffect(() => {
     if (!recenterKey) {
@@ -313,7 +327,7 @@ export function DiscoveryMap({
     }
     syncMarkersInEffect(lib, map);
     revealClosestInEffect(lib, map, true);
-  }, [recenterKey]);
+  }, [recenterKey, syncMarkersInEffect, revealClosestInEffect]);
 
   useEffect(() => {
     for (const [id, entry] of markersRef.current) {
@@ -328,7 +342,7 @@ export function DiscoveryMap({
     if (selected && map && lib && interactive) {
       focusRestaurantInEffect(lib, map, selected);
     }
-  }, [interactive, selectedId]);
+  }, [interactive, selectedId, focusRestaurantInEffect]);
 
   function restaurantPoints(): RestaurantSummary[] {
     const user = userRef.current;

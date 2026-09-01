@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 
 import { discoverRestaurants } from '@/api/discovery';
@@ -36,6 +36,7 @@ export function HomeScreen() {
         longitude: coords?.longitude,
         sort: coords ? 'distance' : 'recent',
       }),
+    placeholderData: keepPreviousData,
   });
 
   const items = restaurants.data?.items ?? [];
@@ -89,7 +90,12 @@ export function HomeScreen() {
         onPress={() => router.push('/explorer')}
         style={styles.mapPreview}
       >
-        <DiscoveryMap restaurants={items} userLocation={coords} interactive={false} />
+        <DiscoveryMap
+          key={`preview-${openNow ? 'open' : 'all'}-${submitted}`}
+          restaurants={items}
+          userLocation={coords}
+          interactive={false}
+        />
       </Pressable>
 
       {restaurants.isLoading ? (

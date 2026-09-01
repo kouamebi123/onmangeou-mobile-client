@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   hero: { height: 300, backgroundColor: tokens.color.brand.deep, position: 'relative' },
   cover: { width: '100%', height: '100%' },
   heroShade: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(23, 59, 54, 0.22)',
   },
   heroBar: {

@@ -54,7 +54,6 @@ const config: ExpoConfig = {
     ],
     'expo-secure-store',
     'expo-font',
-    'expo-image',
   ],
   experiments: {
     typedRoutes: false,
