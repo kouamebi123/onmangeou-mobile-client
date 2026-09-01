@@ -2,7 +2,11 @@ import type { ExpoConfig } from 'expo/config';
 
 const config: ExpoConfig = {
   name: 'OnMangeOu Client',
-  slug: 'onmangeou-mobile-client',
+  slug: 'onmangeou',
+  owner: 'manu99',
+  extra: {
+    eas: { projectId: 'b99b0cce-bdc3-4628-9513-2f4cb79fd65e' },
+  },
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
