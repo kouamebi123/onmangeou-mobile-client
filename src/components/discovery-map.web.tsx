@@ -11,12 +11,12 @@ import { ABIDJAN, DEFAULT_MAP_STYLE, haversineMeters, radiusMetersFromBounds } f
 import { t } from '@/i18n';
 import { tokens } from '@/theme';
 
+import { clusterRestaurants } from './map-clusters';
+
 const STYLE_ID = 'maplibre-gl-css';
 const SCRIPT_ID = 'maplibre-gl-js';
 const THEME_ID = 'omo-map-theme-v4';
 const MAPLIBRE_VERSION = '4.7.1';
-const CLUSTER_RADIUS_PX = 52;
-const CLUSTER_MAX_ZOOM = 15;
 
 type MapLibreModule = typeof import('maplibre-gl');
 type MapInstance = InstanceType<MapLibreModule['Map']>;
@@ -40,7 +40,8 @@ function ensureMapAssets() {
     style.textContent = `
       .omo-pin { width: 32px; height: 32px; display: block; color: ${tokens.color.brand.primary}; cursor: pointer; line-height: 0; filter: drop-shadow(0 2px 4px rgba(23,59,54,.28)); }
       .omo-pin svg { display: block; width: 32px; height: 32px; }
-      .omo-pin--on { color: ${tokens.color.brand.accent}; transform: scale(1.15); }
+      .omo-pin--on { color: ${tokens.color.brand.accent}; }
+      .omo-pin--on svg { transform: scale(1.15); transform-origin: bottom center; }
       .omo-cluster { display: flex; align-items: center; justify-content: center; border-radius: 99px; background: ${tokens.color.brand.primary}; color: ${tokens.color.text.onBrand}; font-weight: 700; font-family: inherit; border: 3px solid ${tokens.color.surface.white}; box-shadow: 0 2px 8px rgba(23,59,54,.28); cursor: pointer; line-height: 1; user-select: none; }
       .omo-cluster--sm { width: 40px; height: 40px; font-size: 14px; }
       .omo-cluster--md { width: 46px; height: 46px; font-size: 15px; }
@@ -107,83 +108,6 @@ function escapeHtml(value: string): string {
 
 function placeLabel(restaurant: RestaurantSummary): string {
   return [restaurant.landmarkText, restaurant.district, restaurant.city].filter(Boolean).join(' · ');
-}
-
-type ClusteredPin = { type: 'pin'; key: string; restaurant: RestaurantSummary };
-type ClusteredGroup = {
-  type: 'cluster';
-  key: string;
-  restaurants: RestaurantSummary[];
-  longitude: number;
-  latitude: number;
-};
-type ClusteredItem = ClusteredPin | ClusteredGroup;
-
-function clusterKey(restaurants: RestaurantSummary[]): string {
-  return `cluster:${restaurants
-    .map((item) => item.id)
-    .sort()
-    .join(',')}`;
-}
-
-function clusterRestaurants(map: MapInstance, restaurants: RestaurantSummary[]): ClusteredItem[] {
-  const valid = restaurants.filter((item) => Number.isFinite(item.latitude) && Number.isFinite(item.longitude));
-  if (valid.length === 0) {
-    return [];
-  }
-  try {
-    if (map.getZoom() >= CLUSTER_MAX_ZOOM) {
-      return valid.map((restaurant) => ({ type: 'pin', key: `pin:${restaurant.id}`, restaurant }));
-    }
-  } catch {
-    return valid.map((restaurant) => ({ type: 'pin', key: `pin:${restaurant.id}`, restaurant }));
-  }
-
-  const remaining = [...valid];
-  const items: ClusteredItem[] = [];
-  while (remaining.length > 0) {
-    const first = remaining.shift();
-    if (!first) {
-      break;
-    }
-    let origin;
-    try {
-      origin = map.project([first.longitude, first.latitude]);
-    } catch {
-      items.push({ type: 'pin', key: `pin:${first.id}`, restaurant: first });
-      continue;
-    }
-    const group = [first];
-    for (let index = remaining.length - 1; index >= 0; index -= 1) {
-      const other = remaining[index];
-      if (!other) {
-        continue;
-      }
-      try {
-        const point = map.project([other.longitude, other.latitude]);
-        const dx = point.x - origin.x;
-        const dy = point.y - origin.y;
-        if (dx * dx + dy * dy <= CLUSTER_RADIUS_PX * CLUSTER_RADIUS_PX) {
-          group.push(other);
-          remaining.splice(index, 1);
-        }
-      } catch {
-        // Point hors projection.
-      }
-    }
-    if (group.length === 1) {
-      items.push({ type: 'pin', key: `pin:${first.id}`, restaurant: first });
-      continue;
-    }
-    items.push({
-      type: 'cluster',
-      key: clusterKey(group),
-      restaurants: group,
-      longitude: group.reduce((sum, item) => sum + item.longitude, 0) / group.length,
-      latitude: group.reduce((sum, item) => sum + item.latitude, 0) / group.length,
-    });
-  }
-  return items;
 }
 
 function popupHtml(restaurant: RestaurantSummary): string {
@@ -299,6 +223,7 @@ export function DiscoveryMap({
         map.on('movestart', (event) => {
           if (event.originalEvent) {
             userMovedRef.current = true;
+            revealGenRef.current += 1;
           }
         });
         map.on('zoomend', () => {
@@ -395,7 +320,7 @@ export function DiscoveryMap({
       if (!id.startsWith('pin:')) {
         continue;
       }
-      entry.el.className = id === `pin:${selectedId}` ? 'omo-pin omo-pin--on' : 'omo-pin';
+      entry.el.classList.toggle('omo-pin--on', id === `pin:${selectedId}`);
     }
     const selected = restaurantsRef.current.find((item) => item.id === selectedId);
     const map = mapRef.current;
@@ -507,6 +432,8 @@ export function DiscoveryMap({
   }
 
   function revealClosestIfNeeded(maplibregl: MapLibreModule, map: MapInstance, force = false) {
+    // Never fight a user's pan/zoom when new results arrive.
+    if (!force && userMovedRef.current) return;
     if (!force && selectedRef.current) {
       return;
     }
@@ -619,7 +546,8 @@ export function DiscoveryMap({
         const restaurant = item.restaurant;
         if (existing) {
           existing.marker.setLngLat([restaurant.longitude, restaurant.latitude]);
-          existing.el.className = restaurant.id === selectedRef.current ? 'omo-pin omo-pin--on' : 'omo-pin';
+          // Preserve MapLibre's positioning classes added by Marker.addTo().
+          existing.el.classList.toggle('omo-pin--on', restaurant.id === selectedRef.current);
           continue;
         }
         const el = document.createElement('div');
@@ -645,7 +573,8 @@ export function DiscoveryMap({
       const sizeClass = item.restaurants.length >= 100 ? 'omo-cluster--lg' : item.restaurants.length >= 10 ? 'omo-cluster--md' : 'omo-cluster--sm';
       if (existing) {
         existing.marker.setLngLat([item.longitude, item.latitude]);
-        existing.el.className = `omo-cluster ${sizeClass}`;
+        existing.el.classList.remove('omo-cluster--sm', 'omo-cluster--md', 'omo-cluster--lg');
+        existing.el.classList.add(sizeClass);
         existing.el.textContent = String(item.restaurants.length);
         continue;
       }

@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { orderKeys } from './order-cache';
 import { Ionicons } from '@expo/vector-icons';
 
 import { fetchMyOrders, type OrderView } from '@/api/orders';
@@ -18,15 +20,23 @@ import { tokens } from '@/theme';
 export function OrdersScreen() {
   const router = useRouter();
   const accessToken = useAuthStore((state) => state.accessToken);
+  const sessionId = useAuthStore((state) => state.sessionId);
+  const [focused, setFocused] = useState(false);
+  useFocusEffect(useCallback(() => {
+    setFocused(true);
+    return () => setFocused(false);
+  }, []));
 
   const orders = useQuery({
-    queryKey: ['orders', 'mine'],
+    queryKey: orderKeys.list(sessionId),
     queryFn: fetchMyOrders,
-    enabled: Boolean(accessToken),
+    enabled: Boolean(accessToken) && focused,
+    staleTime: 0,
+    refetchInterval: focused ? 8000 : false,
   });
 
   return (
-    <Screen>
+    <Screen refreshControl={accessToken ? <RefreshControl refreshing={orders.isRefetching} onRefresh={() => void orders.refetch()} /> : undefined}>
       <PageHero icon="receipt-outline" kicker={t('app.name')} title={t('tabs.orders')} subtitle={t('orders.hero')} />
 
       {!accessToken ? (
@@ -58,7 +68,7 @@ export function OrdersScreen() {
         </View>
       ) : null}
 
-      {orders.data?.map((order) => (
+      {accessToken && orders.data?.map((order) => (
         <OrderRow key={order.id} order={order} onPress={() => router.push(`/order/${order.id}`)} />
       ))}
     </Screen>
