@@ -1,4 +1,11 @@
 {
+  "checkout": {
+    "items": "Vos plats",
+    "service": "Comment souhaitez-vous votre commande ?",
+    "payment": "Moyen de paiement",
+    "preferences": "Une précision pour le restaurant ?",
+    "summary": "Récapitulatif"
+  },
   "coupon": {
     "title": "Un code promo ?",
     "hint": "Un seul code par commande, valable dans ce restaurant. La remise est vérifiée à la confirmation.",
