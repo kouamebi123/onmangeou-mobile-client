@@ -22,6 +22,7 @@ export function OrdersScreen() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const sessionId = useAuthStore((state) => state.sessionId);
   const [focused, setFocused] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   useFocusEffect(useCallback(() => {
     setFocused(true);
     return () => setFocused(false);
@@ -35,8 +36,17 @@ export function OrdersScreen() {
     refetchInterval: focused ? 8000 : false,
   });
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await orders.refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [orders.refetch]);
+
   return (
-    <Screen refreshControl={accessToken ? <RefreshControl refreshing={orders.isRefetching} onRefresh={() => void orders.refetch()} /> : undefined}>
+    <Screen refreshControl={accessToken ? <RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} /> : undefined}>
       <PageHero icon="receipt-outline" kicker={t('app.name')} title={t('tabs.orders')} subtitle={t('orders.hero')} />
 
       {!accessToken ? (
