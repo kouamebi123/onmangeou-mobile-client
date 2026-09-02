@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { deleteMyAccount, fetchConsents, fetchMe, logout, setConsent } from '@/api/auth';
+import { ApiError } from '@/api/envelope';
 import {
   cancelReservation,
   createAddress,
@@ -71,6 +72,8 @@ export function ProfileScreen() {
       void queryClient.invalidateQueries({ queryKey: ['reservations'] });
     },
   });
+  const action = useMutation({ mutationFn: (run: () => Promise<unknown>) => run() });
+  const actionError = action.error ?? support.error ?? cancelResa.error;
 
   const displayName = me.data?.fullName?.trim() || t('profile.title');
   const phoneDigits = me.data?.phoneE164?.replace(/\D/g, '') ?? '';
@@ -93,6 +96,11 @@ export function ProfileScreen() {
           </View>
         ) : null}
       </PageHero>
+      {actionError ? (
+        <AppText accessibilityRole="alert" color={tokens.color.feedback.error}>
+          {actionError instanceof ApiError ? actionError.problem.detail : t('errors.generic')}
+        </AppText>
+      ) : null}
 
       {!accessToken ? (
         <>
@@ -134,7 +142,10 @@ export function ProfileScreen() {
                   {item.title}
                 </AppText>
               ))}
-              <Button label={t('profile.markAllRead')} variant="ghost" onPress={() => void markNotificationsRead()} />
+              <Button label={t('profile.markAllRead')} variant="ghost" disabled={action.isPending} onPress={() => action.mutate(async () => {
+                await markNotificationsRead();
+                await queryClient.invalidateQueries({ queryKey: ['notifications'] });
+              })} />
             </View>
           ) : null}
           {reservations.data && reservations.data.length > 0 ? (
@@ -152,6 +163,7 @@ export function ProfileScreen() {
                       <Button
                         label={t('common.cancel')}
                         variant="ghost"
+                        disabled={cancelResa.isPending}
                         onPress={() => cancelResa.mutate(item.id)}
                       />
                     ) : null}
@@ -216,7 +228,10 @@ export function ProfileScreen() {
                   <AppText>
                     {item.label} · {item.line}
                   </AppText>
-                  <Button label={t('profile.addressRemove')} variant="ghost" onPress={() => deleteAddress(item.id).then(() => void queryClient.invalidateQueries({ queryKey: ['me', 'addresses'] }))} />
+                  <Button label={t('profile.addressRemove')} variant="ghost" disabled={action.isPending} onPress={() => action.mutate(async () => {
+                    await deleteAddress(item.id);
+                    await queryClient.invalidateQueries({ queryKey: ['me', 'addresses'] });
+                  })} />
                 </View>
               </View>
             ))}
@@ -225,11 +240,12 @@ export function ProfileScreen() {
             <Button
               label={t('profile.addressSave')}
               variant="outline"
-              disabled={addressLine.trim().length < 4}
+              disabled={addressLine.trim().length < 4 || action.isPending}
               onPress={() =>
-                createAddress(addressLabel.trim() || t('profile.addressFallback'), addressLine.trim()).then(() => {
+                action.mutate(async () => {
+                  await createAddress(addressLabel.trim() || t('profile.addressFallback'), addressLine.trim());
                   setAddressLine('');
-                  void queryClient.invalidateQueries({ queryKey: ['me', 'addresses'] });
+                  await queryClient.invalidateQueries({ queryKey: ['me', 'addresses'] });
                 })
               }
             />
@@ -244,8 +260,12 @@ export function ProfileScreen() {
                   key={type}
                   label={`${type === 'MARKETING' ? t('profile.consentMarketing') : t('profile.consentLocation')} · ${current?.granted ? t('profile.consentOn') : t('profile.consentOff')}`}
                   variant="ghost"
+                  disabled={action.isPending || !consents.data}
                   onPress={() =>
-                    setConsent(type, !current?.granted).then(() => void queryClient.invalidateQueries({ queryKey: ['me', 'consents'] }))
+                    action.mutate(async () => {
+                      await setConsent(type, !current?.granted);
+                      await queryClient.invalidateQueries({ queryKey: ['me', 'consents'] });
+                    })
                   }
                 />
               );
@@ -255,23 +275,24 @@ export function ProfileScreen() {
           <Button
             label={t('common.signOut')}
             variant="outline"
-            onPress={async () => {
+            disabled={action.isPending}
+            onPress={() => action.mutate(async () => {
               try {
                 await logout();
               } finally {
                 await clear();
               }
-            }}
+            })}
           />
           <TextField label={t('profile.deleteReason')} value={deleteReason} onChangeText={setDeleteReason} />
           <Button
             label={t('profile.deleteAccount')}
             variant="destructive"
-            disabled={deleteReason.trim().length < 4}
-            onPress={async () => {
+            disabled={deleteReason.trim().length < 4 || action.isPending}
+            onPress={() => action.mutate(async () => {
               await deleteMyAccount(deleteReason.trim());
               await clear();
-            }}
+            })}
           />
         </>
       )}

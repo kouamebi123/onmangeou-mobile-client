@@ -6,6 +6,7 @@ import { ApiError, fallbackProblem, isProblemDetails, unwrapEnvelope } from '@/a
 import type { ResponseEnvelope, TokenPair } from '@/api/types';
 import { normalizeApiBaseUrl } from '@/api/url';
 import { useAuthStore } from '@/store/auth-store';
+import { t } from '@/i18n';
 
 const DEFAULT_API_URL = 'https://onmangeou-backend-api-production.up.railway.app/api/v1';
 
@@ -82,11 +83,17 @@ async function refreshSession(): Promise<boolean> {
         body,
         auth: false,
       });
+      if (useAuthStore.getState().refreshToken !== refreshToken || useAuthStore.getState().organizationId !== organizationId) return false;
       await setSession(envelope.data);
       return true;
-    } catch {
-      await clear();
-      return false;
+    } catch (error) {
+      if (useAuthStore.getState().refreshToken !== refreshToken || useAuthStore.getState().organizationId !== organizationId) return false;
+      // A network/server outage is not proof that the session was revoked.
+      if (error instanceof ApiError && error.problem.status === 401) {
+        await clear();
+        return false;
+      }
+      throw error;
     }
   })();
 
@@ -119,7 +126,7 @@ async function rawRequest<T>(path: string, options: RequestOptions = {}): Promis
     headers['Idempotency-Key'] = options.idempotencyKey ?? createRequestId();
   }
 
-  const response = await fetch(buildUrl(path, options.query), {
+  const response = await fetchResponse(buildUrl(path, options.query), {
     method: options.method ?? 'GET',
     headers,
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
@@ -145,20 +152,35 @@ async function rawRequest<T>(path: string, options: RequestOptions = {}): Promis
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<ResponseEnvelope<T>> {
+  const sessionId = useAuthStore.getState().sessionId;
+  const stableOptions = options.idempotent && !options.idempotencyKey
+    ? { ...options, idempotencyKey: createRequestId() } : options;
   try {
-    return await rawRequest<T>(path, options);
+    return await rawRequest<T>(path, stableOptions);
   } catch (error) {
     const unauthorized =
       error instanceof ApiError && (error.problem.status === 401 || error.problem.code === 'SESSION_EXPIRED');
-    const canRefresh = options.auth !== false && Boolean(useAuthStore.getState().refreshToken);
+    const canRefresh = options.auth !== false && sessionId === useAuthStore.getState().sessionId && Boolean(useAuthStore.getState().refreshToken);
 
     if (unauthorized && canRefresh && !path.startsWith('/auth/refresh')) {
       const refreshed = await refreshSession();
-      if (refreshed) {
-        return rawRequest<T>(path, options);
+      if (refreshed && sessionId === useAuthStore.getState().sessionId) {
+        return rawRequest<T>(path, stableOptions);
       }
     }
 
     throw error;
+  }
+}
+
+async function fetchResponse(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch {
+    throw new ApiError(fallbackProblem(t(controller.signal.aborted ? 'network.timeout' : 'network.offline')));
+  } finally {
+    clearTimeout(timeout);
   }
 }

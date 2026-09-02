@@ -1,4 +1,8 @@
 {
+  "network": {
+    "timeout": "Le serveur met trop de temps à répondre. Vérifiez le suivi avant de relancer une commande.",
+    "offline": "Connexion interrompue. Vérifiez votre accès Internet puis réessayez."
+  },
   "checkout": {
     "items": "Vos plats",
     "service": "Comment souhaitez-vous votre commande ?",
@@ -317,6 +321,8 @@
     "retry": "Réessayer"
   },
   "schedule": {
+    "asapClosedNext": "Commande immédiate indisponible selon les horaires enregistrés. Prochain créneau proposé : {date} ({timezone}).",
+    "asapClosed": "Commande immédiate indisponible selon les horaires enregistrés. Aucun créneau proposé pour les sept prochains jours.",
     "loading": "Chargement des créneaux…",
     "error": "Impossible de charger les horaires.",
     "retry": "Réessayer",
