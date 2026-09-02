@@ -30,7 +30,7 @@ export function ProfileScreen() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const clear = useAuthStore((state) => state.clear);
   const [ticketBody, setTicketBody] = useState('');
-  const [addressLabel, setAddressLabel] = useState('Maison');
+  const [addressLabel, setAddressLabel] = useState(t('profile.addressHome'));
   const [addressLine, setAddressLine] = useState('');
   const [deleteReason, setDeleteReason] = useState('');
 
@@ -60,7 +60,7 @@ export function ProfileScreen() {
     enabled: Boolean(accessToken),
   });
   const support = useMutation({
-    mutationFn: () => createSupportTicket('Aide depuis l’application', ticketBody.trim()),
+    mutationFn: () => createSupportTicket(t('profile.helpSubject'), ticketBody.trim()),
     onSuccess: () => {
       setTicketBody('');
     },
@@ -128,18 +128,18 @@ export function ProfileScreen() {
 
           {inbox.data && inbox.data.length > 0 ? (
             <View style={styles.card}>
-              <AppText variant="subtitle">Notifications</AppText>
+              <AppText variant="subtitle">{t('profile.notifications')}</AppText>
               {inbox.data.slice(0, 4).map((item) => (
                 <AppText key={item.id} variant="muted">
                   {item.title}
                 </AppText>
               ))}
-              <Button label="Tout marquer lu" variant="ghost" onPress={() => void markNotificationsRead()} />
+              <Button label={t('profile.markAllRead')} variant="ghost" onPress={() => void markNotificationsRead()} />
             </View>
           ) : null}
           {reservations.data && reservations.data.length > 0 ? (
             <View style={styles.card}>
-              <AppText variant="subtitle">Réservations</AppText>
+              <AppText variant="subtitle">{t('profile.reservations')}</AppText>
               {reservations.data.slice(0, 4).map((item) => (
                 <View key={item.id} style={styles.info}>
                   <View style={styles.infoBody}>
@@ -150,7 +150,7 @@ export function ProfileScreen() {
                     <AppText>{t('reservation.party', { count: String(item.party_size) })}</AppText>
                     {item.status === 'REQUESTED' || item.status === 'CONFIRMED' ? (
                       <Button
-                        label="Annuler"
+                        label={t('common.cancel')}
                         variant="ghost"
                         onPress={() => cancelResa.mutate(item.id)}
                       />
@@ -162,21 +162,21 @@ export function ProfileScreen() {
           ) : null}
 
           <View style={styles.card}>
-            <AppText variant="subtitle">Aide</AppText>
+            <AppText variant="subtitle">{t('profile.help')}</AppText>
             <TextField
-              label="Décrire le problème"
+              label={t('profile.helpDescribe')}
               value={ticketBody}
               onChangeText={setTicketBody}
               multiline
             />
             <Button
-              label="Envoyer un ticket"
+              label={t('profile.helpSend')}
               variant="outline"
               loading={support.isPending}
               disabled={ticketBody.trim().length < 4}
               onPress={() => support.mutate()}
             />
-            {support.isSuccess ? <AppText color={tokens.color.brand.primary}>Ticket envoyé.</AppText> : null}
+            {support.isSuccess ? <AppText color={tokens.color.brand.primary}>{t('profile.helpSent')}</AppText> : null}
           </View>
 
           <Pressable
@@ -209,25 +209,25 @@ export function ProfileScreen() {
           </Pressable>
 
           <View style={styles.card}>
-            <AppText variant="subtitle">Adresses</AppText>
+            <AppText variant="subtitle">{t('profile.addresses')}</AppText>
             {addresses.data?.map((item) => (
               <View key={item.id} style={styles.info}>
                 <View style={styles.infoBody}>
                   <AppText>
                     {item.label} · {item.line}
                   </AppText>
-                  <Button label="Retirer" variant="ghost" onPress={() => deleteAddress(item.id).then(() => void queryClient.invalidateQueries({ queryKey: ['me', 'addresses'] }))} />
+                  <Button label={t('profile.addressRemove')} variant="ghost" onPress={() => deleteAddress(item.id).then(() => void queryClient.invalidateQueries({ queryKey: ['me', 'addresses'] }))} />
                 </View>
               </View>
             ))}
-            <TextField label="Libellé" value={addressLabel} onChangeText={setAddressLabel} />
-            <TextField label="Adresse ou repère" value={addressLine} onChangeText={setAddressLine} />
+            <TextField label={t('profile.addressLabel')} value={addressLabel} onChangeText={setAddressLabel} />
+            <TextField label={t('profile.addressLine')} value={addressLine} onChangeText={setAddressLine} />
             <Button
-              label="Enregistrer l’adresse"
+              label={t('profile.addressSave')}
               variant="outline"
               disabled={addressLine.trim().length < 4}
               onPress={() =>
-                createAddress(addressLabel.trim() || 'Adresse', addressLine.trim()).then(() => {
+                createAddress(addressLabel.trim() || t('profile.addressFallback'), addressLine.trim()).then(() => {
                   setAddressLine('');
                   void queryClient.invalidateQueries({ queryKey: ['me', 'addresses'] });
                 })
@@ -236,13 +236,13 @@ export function ProfileScreen() {
           </View>
 
           <View style={styles.card}>
-            <AppText variant="subtitle">Consentements</AppText>
+            <AppText variant="subtitle">{t('profile.consents')}</AppText>
             {(['MARKETING', 'LOCATION'] as const).map((type) => {
               const current = consents.data?.find((item) => item.type === type);
               return (
                 <Button
                   key={type}
-                  label={`${type === 'MARKETING' ? 'Offres et bons plans' : 'Localisation'} · ${current?.granted ? 'activé' : 'désactivé'}`}
+                  label={`${type === 'MARKETING' ? t('profile.consentMarketing') : t('profile.consentLocation')} · ${current?.granted ? t('profile.consentOn') : t('profile.consentOff')}`}
                   variant="ghost"
                   onPress={() =>
                     setConsent(type, !current?.granted).then(() => void queryClient.invalidateQueries({ queryKey: ['me', 'consents'] }))
@@ -263,9 +263,9 @@ export function ProfileScreen() {
               }
             }}
           />
-          <TextField label="Motif de suppression du compte" value={deleteReason} onChangeText={setDeleteReason} />
+          <TextField label={t('profile.deleteReason')} value={deleteReason} onChangeText={setDeleteReason} />
           <Button
-            label="Supprimer mon compte"
+            label={t('profile.deleteAccount')}
             variant="destructive"
             disabled={deleteReason.trim().length < 4}
             onPress={async () => {

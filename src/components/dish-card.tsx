@@ -99,5 +99,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tagLabel: { fontFamily: tokens.typography.family.semibold },
-  add: { alignSelf: 'flex-start', marginTop: tokens.spacing.xxs, minHeight: 36, paddingHorizontal: tokens.spacing.sm },
+  add: { alignSelf: 'flex-start', marginTop: tokens.spacing.xxs, minHeight: tokens.layout.minTouchTarget, paddingHorizontal: tokens.spacing.md },
 });

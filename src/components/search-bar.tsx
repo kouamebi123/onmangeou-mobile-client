@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { tokens } from '@/theme';
 import { t } from '@/i18n';
@@ -29,7 +30,9 @@ export function SearchBar({ value, onChangeText, onSubmit, placeholder }: Search
         accessibilityLabel={t('common.search')}
         onPress={onSubmit}
         style={styles.action}
-      />
+      >
+        <Ionicons name="search" size={20} color={tokens.color.brand.primary} />
+      </Pressable>
     </View>
   );
 }
@@ -52,7 +55,10 @@ const styles = StyleSheet.create({
     color: tokens.color.text.primary,
   },
   action: {
-    width: tokens.spacing.md,
-    height: tokens.spacing.md,
+    width: tokens.layout.minTouchTarget,
+    height: tokens.layout.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: -tokens.spacing.sm,
   },
 });

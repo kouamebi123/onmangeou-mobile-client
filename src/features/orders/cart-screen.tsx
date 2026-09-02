@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/empty-state';
 import { PageHero } from '@/components/page-hero';
 import { Screen } from '@/components/screen';
 import { TextField } from '@/components/text-field';
+import { hapticLight, hapticSuccess } from '@/feedback/haptics';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/store/auth-store';
 import { useCartStore } from '@/store/cart-store';
@@ -63,22 +64,22 @@ export function CartScreen() {
   const canOrder = restaurantHasModule(restaurant.data ?? {}, PUBLIC_MODULES.ORDERS);
   const serviceOptions = (
     [
-      { id: 'TAKEAWAY', label: 'À emporter' },
-      { id: 'DINE_IN', label: 'Sur place' },
-      ...(canDeliver ? ([{ id: 'DELIVERY', label: 'Livraison' }] as const) : []),
+      { id: 'TAKEAWAY', label: t('restaurant.takeaway') },
+      { id: 'DINE_IN', label: t('restaurant.dineIn') },
+      ...(canDeliver ? ([{ id: 'DELIVERY', label: t('restaurant.delivery') }] as const) : []),
     ] as const
   );
   const paymentOptions = (
     [
-      { id: 'CASH', label: 'Espèces' },
+      { id: 'CASH', label: t('payments.cash') },
       ...(canPayOnline
         ? ([
-            { id: 'WAVE', label: 'Wave' },
-            { id: 'WERO', label: 'Wero' },
-            { id: 'ORANGE_MONEY', label: 'Orange Money' },
-            { id: 'MTN', label: 'MTN MoMo' },
-            { id: 'MOOV', label: 'Moov Money' },
-            { id: 'CARD', label: 'Carte' },
+            { id: 'WAVE', label: t('payments.wave') },
+            { id: 'WERO', label: t('payments.wero') },
+            { id: 'ORANGE_MONEY', label: t('payments.orangeMoney') },
+            { id: 'MTN', label: t('payments.mtn') },
+            { id: 'MOOV', label: t('payments.moov') },
+            { id: 'CARD', label: t('payments.card') },
           ] as const)
         : []),
     ] as const
@@ -115,6 +116,7 @@ export function CartScreen() {
         scheduledFor: scheduledFor || undefined,
       }),
     onSuccess: async (order) => {
+      hapticSuccess();
       await rememberOrder(queryClient, sessionId, order);
       clear();
       router.replace(`/order/${order.id}`);
@@ -144,11 +146,29 @@ export function CartScreen() {
             <AppText variant="muted">{line.formatted}</AppText>
           </View>
           <View style={styles.stepper}>
-            <Pressable accessibilityRole="button" onPress={() => decrement(line.productId)} style={styles.step}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('orders.decreaseQty', { name: line.name })}
+              hitSlop={6}
+              onPress={() => {
+                hapticLight();
+                decrement(line.productId);
+              }}
+              style={styles.step}
+            >
               <AppText variant="subtitle">−</AppText>
             </Pressable>
             <AppText variant="subtitle">{String(line.quantity)}</AppText>
-            <Pressable accessibilityRole="button" onPress={() => increment(line.productId)} style={styles.step}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('orders.increaseQty', { name: line.name })}
+              hitSlop={6}
+              onPress={() => {
+                hapticLight();
+                increment(line.productId);
+              }}
+              style={styles.step}
+            >
               <AppText variant="subtitle">+</AppText>
             </Pressable>
           </View>
@@ -161,6 +181,9 @@ export function CartScreen() {
             {serviceOptions.map((option) => (
               <Pressable
                 key={option.id}
+                accessibilityRole="button"
+                accessibilityLabel={option.label}
+                accessibilityState={{ selected: service === option.id }}
                 onPress={() => setService(option.id)}
                 style={[styles.chip, service === option.id ? styles.chipOn : null]}
               >
@@ -171,7 +194,7 @@ export function CartScreen() {
             ))}
           </View>
           {service === 'DELIVERY' ? (
-            <TextField label="Adresse de livraison" value={deliveryAddress} onChangeText={setDeliveryAddress} />
+            <TextField label={t('orders.deliveryAddress')} value={deliveryAddress} onChangeText={setDeliveryAddress} />
           ) : null}
           <SchedulePicker data={schedule.data} loading={schedule.isPending} error={schedule.isError}
             value={scheduledFor} onChange={setScheduledFor} service={service}
@@ -181,6 +204,9 @@ export function CartScreen() {
             {paymentOptions.map((option) => (
               <Pressable
                 key={option.id}
+                accessibilityRole="button"
+                accessibilityLabel={option.label}
+                accessibilityState={{ selected: paymentMethod === option.id }}
                 onPress={() => setPaymentMethod(option.id)}
                 style={[styles.chip, paymentMethod === option.id ? styles.chipOn : null]}
               >
@@ -198,7 +224,7 @@ export function CartScreen() {
           </View>
           {formError ? <AppText color={tokens.color.feedback.error}>{formError}</AppText> : null}
           {!canOrder && restaurant.isSuccess ? (
-            <AppText variant="muted">Ce restaurant n’accepte pas les commandes en ligne.</AppText>
+            <AppText variant="muted">{t('orders.notAvailable')}</AppText>
           ) : null}
           {!accessToken ? (
             <Button label={t('orders.needAuth')} onPress={() => router.push('/auth')} />
@@ -243,7 +269,7 @@ const styles = StyleSheet.create({
   total: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.spacing.xs },
   chip: {
-    minHeight: 36,
+    minHeight: tokens.layout.minTouchTarget,
     borderRadius: tokens.radius.pill,
     borderWidth: 1,
     borderColor: tokens.color.border.default,

@@ -3,9 +3,10 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchEvents, fetchPromotions, fetchReviews, followRestaurant } from '@/api/commerce';
 import { fetchRestaurant, PUBLIC_MODULES, restaurantHasModule } from '@/api/discovery';
@@ -22,6 +23,7 @@ import { formatDistance } from '@/features/explore/format';
 import { restaurantCoverUrl } from '@/features/restaurant/cover';
 import { hoursRangeLabel, hoursSummary, orderedHours, todayWeekDay } from '@/features/restaurant/hours';
 import { useFavoriteToggle } from '@/features/favorites/use-favorite-toggle';
+import { hapticLight } from '@/feedback/haptics';
 import { t } from '@/i18n';
 import { useCartStore } from '@/store/cart-store';
 import { tokens } from '@/theme';
@@ -36,7 +38,9 @@ const SERVICE_META: Record<string, { label: string; icon: keyof typeof Ionicons.
 export function RestaurantScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [hoursOpen, setHoursOpen] = useState(false);
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
 
   const detail = useQuery({
     queryKey: ['restaurant', slug],
@@ -114,10 +118,13 @@ export function RestaurantScreen() {
 
   return (
     <View style={styles.safe}>
+      <StatusBar style={scrolledPastHero ? 'dark' : 'light'} />
       <OfflineBanner />
       <ScrollView
         contentContainerStyle={[styles.scroll, canOrder && cartCount > 0 ? styles.scrollWithCart : null]}
         keyboardShouldPersistTaps="handled"
+        onScroll={(event) => setScrolledPastHero(event.nativeEvent.contentOffset.y > 240 - insets.top)}
+        scrollEventThrottle={64}
       >
         <View style={styles.hero}>
           <Image
@@ -205,7 +212,7 @@ export function RestaurantScreen() {
             />
           </View>
           <View style={styles.actions}>
-            <ActionChip icon="notifications-outline" label="Suivre" onPress={() => follow.mutate()} />
+            <ActionChip icon="notifications-outline" label={t('restaurant.follow')} onPress={() => follow.mutate()} />
           </View>
           {canReserve ? (
             <View style={styles.card}>
@@ -239,7 +246,7 @@ export function RestaurantScreen() {
               <View style={styles.fact}>
                 <Ionicons name="sunny-outline" size={14} color={tokens.color.brand.primary} />
                 <AppText variant="caption" color={tokens.color.brand.deep} style={styles.factLabel}>
-                  Terrasse
+                  {t('restaurant.terrace')}
                 </AppText>
               </View>
             ) : null}
@@ -247,7 +254,7 @@ export function RestaurantScreen() {
               <View style={styles.fact}>
                 <Ionicons name="snow-outline" size={14} color={tokens.color.brand.primary} />
                 <AppText variant="caption" color={tokens.color.brand.deep} style={styles.factLabel}>
-                  Clim
+                  {t('restaurant.ac')}
                 </AppText>
               </View>
             ) : null}
@@ -255,7 +262,7 @@ export function RestaurantScreen() {
               <View style={styles.fact}>
                 <Ionicons name="accessibility-outline" size={14} color={tokens.color.brand.primary} />
                 <AppText variant="caption" color={tokens.color.brand.deep} style={styles.factLabel}>
-                  Accessible
+                  {t('restaurant.accessible')}
                 </AppText>
               </View>
             ) : null}
@@ -342,7 +349,7 @@ export function RestaurantScreen() {
           {promotions.data && promotions.data.length > 0 ? (
             <View style={styles.card}>
               <View style={styles.cardBody}>
-                <AppText variant="subtitle">Bons plans</AppText>
+                <AppText variant="subtitle">{t('restaurant.promotions')}</AppText>
                 {promotions.data.map((item) => (
                   <AppText key={item.id}>
                     {item.title}
@@ -355,7 +362,7 @@ export function RestaurantScreen() {
           {events.data && events.data.length > 0 ? (
             <View style={styles.card}>
               <View style={styles.cardBody}>
-                <AppText variant="subtitle">Événements</AppText>
+                <AppText variant="subtitle">{t('restaurant.events')}</AppText>
                 {events.data.map((event) => (
                   <AppText key={event.id}>{event.title}</AppText>
                 ))}
@@ -365,7 +372,7 @@ export function RestaurantScreen() {
           {reviews.data && reviews.data.length > 0 ? (
             <View style={styles.card}>
               <View style={styles.cardBody}>
-                <AppText variant="subtitle">Avis</AppText>
+                <AppText variant="subtitle">{t('restaurant.reviews')}</AppText>
                 {reviews.data.slice(0, 3).map((item) => (
                   <AppText key={item.id}>
                     {item.score}/5 · {item.body ?? item.author_name}
@@ -397,7 +404,8 @@ export function RestaurantScreen() {
                       dish={dish}
                       onAdd={
                         canOrder
-                          ? () =>
+                          ? () => {
+                              hapticLight();
                               addToCart({
                                 establishmentId: restaurant.id,
                                 establishmentName: restaurant.name,
@@ -406,7 +414,8 @@ export function RestaurantScreen() {
                                 name: dish.name,
                                 unitAmount: dish.price.amount,
                                 formatted: dish.price.formatted,
-                              })
+                              });
+                            }
                           : undefined
                       }
                     />
@@ -421,7 +430,7 @@ export function RestaurantScreen() {
         </View>
       </ScrollView>
       {canOrder && cartCount > 0 ? (
-        <View style={styles.cartBar}>
+        <View style={[styles.cartBar, { paddingBottom: Math.max(insets.bottom, tokens.spacing.xl) }]}>
           <Button
             label={t('orders.seeCart', { count: String(cartCount) })}
             onPress={() => router.push('/cart')}
@@ -496,9 +505,9 @@ const styles = StyleSheet.create({
     paddingBottom: tokens.spacing.sm,
   },
   heroBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: tokens.layout.minTouchTarget,
+    height: tokens.layout.minTouchTarget,
+    borderRadius: tokens.layout.minTouchTarget / 2,
     backgroundColor: tokens.color.surface.white,
     alignItems: 'center',
     justifyContent: 'center',

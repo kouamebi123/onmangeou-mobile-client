@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 
 import { addFavorite, removeFavorite, type RestaurantDetail, type RestaurantSummary } from '@/api/discovery';
 import { ApiError } from '@/api/envelope';
+import { hapticLight } from '@/feedback/haptics';
 import { useAuthStore } from '@/store/auth-store';
 
 function patchFavoriteCaches(
@@ -90,6 +91,7 @@ export function useFavoriteToggle(restaurant: Pick<RestaurantSummary, 'id' | 'sl
       if (mutation.isPending) {
         return;
       }
+      hapticLight();
       mutation.mutate(!restaurant.isFavorite);
     },
     pending: mutation.isPending,

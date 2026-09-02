@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.color.border.default,
     paddingHorizontal: tokens.spacing.md,
-    minHeight: 36,
+    minHeight: tokens.layout.minTouchTarget,
     justifyContent: 'center',
   },
   modeChipOn: {
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: tokens.spacing.xs,
-    minHeight: 36,
+    minHeight: tokens.layout.minTouchTarget,
     paddingHorizontal: tokens.spacing.md,
     borderRadius: tokens.radius.pill,
     backgroundColor: tokens.color.surface.white,

@@ -19,7 +19,14 @@
   "payments": {
     "simulation": "Mode démonstration : aucun débit réel. Les moyens affichés ne sont pas encore connectés à leurs opérateurs.",
     "simulate": "Simuler le paiement (aucun débit)",
-    "unavailable": "Ce moyen de paiement n’est pas disponible."
+    "unavailable": "Ce moyen de paiement n’est pas disponible.",
+    "cash": "Espèces",
+    "wave": "Wave",
+    "wero": "Wero",
+    "orangeMoney": "Orange Money",
+    "mtn": "MTN MoMo",
+    "moov": "Moov Money",
+    "card": "Carte"
   },
   "onboarding": {
     "title": "Comment vous appelez-vous ?",
@@ -73,6 +80,10 @@
     "ref": "Commande {ref}",
     "cancel": "Annuler la commande",
     "confirmPickup": "J'ai récupéré",
+    "deliveryAddress": "Adresse de livraison",
+    "notAvailable": "Ce restaurant n’accepte pas les commandes en ligne.",
+    "increaseQty": "Augmenter la quantité de {name}",
+    "decreaseQty": "Diminuer la quantité de {name}",
     "status": {
       "PENDING_PAYMENT": "Paiement en attente",
       "PENDING_RESTAURANT": "En attente du restaurant",
@@ -153,7 +164,14 @@
     "hoursLess": "Réduire",
     "order": "Commander",
     "priceFrom": "Dès {price}",
-    "todayHours": "Aujourd’hui"
+    "todayHours": "Aujourd’hui",
+    "follow": "Suivre",
+    "terrace": "Terrasse",
+    "ac": "Clim",
+    "accessible": "Accessible",
+    "promotions": "Bons plans",
+    "events": "Événements",
+    "reviews": "Avis"
   },
   "weekdays": {
     "MONDAY": "Lundi",
@@ -187,7 +205,29 @@
     "benefitSoon": "Commandes",
     "benefitSoonDetail": "Suivez le retrait dès que le restaurant accepte.",
     "openFavorites": "Mes favoris",
-    "openExplore": "Explorer la carte"
+    "openExplore": "Explorer la carte",
+    "notifications": "Notifications",
+    "markAllRead": "Tout marquer lu",
+    "reservations": "Réservations",
+    "help": "Aide",
+    "helpDescribe": "Décrire le problème",
+    "helpSend": "Envoyer un ticket",
+    "helpSent": "Ticket envoyé.",
+    "helpSubject": "Aide depuis l’application",
+    "addresses": "Adresses",
+    "addressLabel": "Libellé",
+    "addressLine": "Adresse ou repère",
+    "addressSave": "Enregistrer l’adresse",
+    "addressRemove": "Retirer",
+    "addressHome": "Maison",
+    "addressFallback": "Adresse",
+    "consents": "Consentements",
+    "consentMarketing": "Offres et bons plans",
+    "consentLocation": "Localisation",
+    "consentOn": "activé",
+    "consentOff": "désactivé",
+    "deleteReason": "Motif de suppression du compte",
+    "deleteAccount": "Supprimer mon compte"
   },
   "auth": {
     "kicker": "Espace client",

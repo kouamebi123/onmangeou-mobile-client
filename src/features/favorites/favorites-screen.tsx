@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { fetchFavorites } from '@/api/discovery';
@@ -25,6 +26,16 @@ export function FavoritesScreen() {
     enabled: Boolean(accessToken),
   });
 
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await favorites.refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [favorites.refetch]);
+
   const count = favorites.data?.length ?? 0;
   const subtitle = accessToken
     ? count > 0
@@ -33,7 +44,7 @@ export function FavoritesScreen() {
     : t('favorites.guestLead');
 
   return (
-    <Screen>
+    <Screen refreshControl={accessToken ? <RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} /> : undefined}>
       <PageHero icon="heart" kicker={t('app.name')} title={t('favorites.title')} subtitle={subtitle} />
 
       {!accessToken ? (

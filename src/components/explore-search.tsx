@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.color.border.default,
     paddingHorizontal: tokens.spacing.md,
-    minHeight: 36,
+    minHeight: tokens.layout.minTouchTarget,
     justifyContent: 'center',
   },
   chipOn: {

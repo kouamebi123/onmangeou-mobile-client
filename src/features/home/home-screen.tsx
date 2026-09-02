@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Pressable, RefreshControl, StyleSheet, Switch, View } from 'react-native';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 
@@ -42,8 +42,18 @@ export function HomeScreen() {
 
   const { items, featured, remaining } = buildHomeSections(restaurants.data?.items ?? [], openNow);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await restaurants.refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [restaurants.refetch]);
+
   return (
-    <Screen>
+    <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />}>
       <View style={styles.hero}>
         <HeroBlobs />
         <View style={styles.logoWrap}>
