@@ -9,10 +9,12 @@ export async function quoteOrder(input: {
   return envelope.data;
 }
 
-export async function createPaymentIntent(orderId: string, provider: string) {
+export async function createPaymentIntent(orderId: string, provider: string, idempotencyKey: string) {
   const envelope = await apiRequest<{ id: string; status: string }>('/payments/intents', {
     method: 'POST',
     body: { orderId, provider },
+    idempotent: true,
+    idempotencyKey,
   });
   return envelope.data;
 }

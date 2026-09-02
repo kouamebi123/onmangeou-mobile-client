@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef } from 'react';
+import { createIdempotencyKey } from '@/api/device';
 import { StyleSheet, View } from 'react-native';
 
 import { confirmPayment, createPaymentIntent } from '@/api/commerce';
@@ -23,6 +25,7 @@ export function OrderDetailScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const sessionId = useAuthStore((state) => state.sessionId);
+  const paymentRequest = useRef({ payload: '', key: '', intentId: '' });
 
   const detail = useQuery({
     queryKey: orderKeys.detail(sessionId, id ?? ''),
@@ -49,8 +52,15 @@ export function OrderDetailScreen() {
     mutationFn: async () => {
       const method = detail.data?.paymentMethod;
       if (!method || method === 'CASH') throw new Error(t('payments.unavailable'));
-      const intent = await createPaymentIntent(id ?? '', method);
-      return confirmPayment(intent.id);
+      const payload = JSON.stringify([id, method]);
+      if (paymentRequest.current.payload !== payload) {
+        paymentRequest.current = { payload, key: createIdempotencyKey(), intentId: '' };
+      }
+      if (!paymentRequest.current.intentId) {
+        const intent = await createPaymentIntent(id ?? '', method, paymentRequest.current.key);
+        paymentRequest.current.intentId = intent.id;
+      }
+      return confirmPayment(paymentRequest.current.intentId);
     },
     onSuccess: invalidate,
   });
@@ -80,6 +90,8 @@ export function OrderDetailScreen() {
       ? cancel.error.problem.detail
       : pickup.error instanceof ApiError
         ? pickup.error.problem.detail
+        : pay.error instanceof ApiError
+          ? pay.error.problem.detail
         : cancel.error || pickup.error || pay.error
           ? t('errors.generic') : undefined;
 
@@ -132,7 +144,7 @@ export function OrderDetailScreen() {
           onPress={() => cancel.mutate()}
         />
       ) : null}
-      {order.status === 'READY' ? (
+      {order.status === 'READY' && order.service !== 'DELIVERY' ? (
         <Button label={t('orders.confirmPickup')} loading={pickup.isPending} onPress={() => pickup.mutate()} />
       ) : null}
       {order.status === 'COMPLETED' ? (

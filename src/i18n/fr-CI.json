@@ -1,5 +1,21 @@
 {
-  "common": { "loading": "Chargement…" },
+  "common": {
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "continue": "Continuer",
+    "loading": "Chargement…",
+    "open": "Ouvert",
+    "closed": "Fermé",
+    "search": "Rechercher",
+    "city": "Ville",
+    "openNow": "Ouvert maintenant",
+    "all": "Tous",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "required": "Connexion requise",
+    "changePhone": "Changer de numéro"
+  },
   "payments": {
     "simulation": "Mode démonstration : aucun débit réel. Les moyens affichés ne sont pas encore connectés à leurs opérateurs.",
     "simulate": "Simuler le paiement (aucun débit)",
@@ -21,23 +37,6 @@
     "orders": "Commandes",
     "favorites": "Favoris",
     "profile": "Profil"
-  },
-  "common": {
-    "retry": "Réessayer",
-    "cancel": "Annuler",
-    "save": "Enregistrer",
-    "continue": "Continuer",
-    "loading": "Chargement…",
-    "open": "Ouvert",
-    "closed": "Fermé",
-    "search": "Rechercher",
-    "city": "Ville",
-    "openNow": "Ouvert maintenant",
-    "all": "Tous",
-    "signIn": "Se connecter",
-    "signOut": "Se déconnecter",
-    "required": "Connexion requise",
-    "changePhone": "Changer de numéro"
   },
   "offline": {
     "banner": "Connexion faible : vos modifications seront synchronisées."
@@ -232,7 +231,7 @@
     "less": "Retirer une personne",
     "more": "Ajouter une personne",
     "notes": "Précisions (facultatif)",
-    "pendingNotice": "Cette demande reste soumise à la confirmation du restaurant. Les heures proposées ne garantissent pas une table disponible.",
+    "pendingNotice": "Demande pour 2 heures, soumise à la confirmation du restaurant et à la disponibilité d’une table adaptée.",
     "send": "Envoyer la demande",
     "login": "Se connecter pour réserver",
     "success": "Demande envoyée. Retrouvez son suivi dans votre profil.",
