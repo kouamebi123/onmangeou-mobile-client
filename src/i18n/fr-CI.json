@@ -256,5 +256,20 @@
     "help": "Notez la cuisine et l’accueil. Ne pénalisez pas le restaurant pour un livreur indépendant.",
     "loadError": "Impossible de charger votre avis.",
     "retry": "Réessayer"
+  },
+  "schedule": {
+    "loading": "Chargement des créneaux…",
+    "error": "Impossible de charger les horaires.",
+    "retry": "Réessayer",
+    "asap": "Dès que possible",
+    "later": "Choisir un créneau",
+    "empty": "Aucun créneau disponible dans les sept prochains jours.",
+    "expired": "Ce créneau a expiré. Choisissez une nouvelle heure.",
+    "TAKEAWAY": "Heure de retrait souhaitée",
+    "DINE_IN": "Heure de repas souhaitée",
+    "DELIVERY": "Heure de livraison souhaitée",
+    "notice": "Horaires du restaurant ({timezone}). Heure souhaitée, à confirmer par le restaurant ; le délai de livraison peut varier.",
+    "requested": "Prévue le {date}",
+    "immediate": "Dès que possible"
   }
 }

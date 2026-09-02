@@ -36,6 +36,8 @@ export interface OrderView {
   items: OrderItemView[];
   total: MoneyView;
   placedAt: string;
+  scheduledFor?: string | null;
+  timezone?: string;
 }
 
 export async function createOrder(input: {
@@ -75,4 +77,13 @@ export async function cancelOrder(orderId: string): Promise<OrderView> {
 export async function confirmPickup(orderId: string): Promise<OrderView> {
   const envelope = await apiRequest<OrderView>(`/orders/${orderId}/confirm-pickup`, { method: 'POST' });
   return envelope.data;
+}
+
+export interface OrderSchedule {
+  timezone: string;
+  asapAvailable: boolean;
+  slots: string[];
+}
+export async function fetchOrderSchedule(establishmentId: string): Promise<OrderSchedule> {
+  return (await apiRequest<OrderSchedule>(`/restaurants/${establishmentId}/order-slots`)).data;
 }

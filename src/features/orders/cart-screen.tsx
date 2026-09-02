@@ -6,7 +6,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { quoteOrder } from '@/api/commerce';
 import { fetchRestaurant, PUBLIC_MODULES, restaurantHasModule } from '@/api/discovery';
-import { createOrder } from '@/api/orders';
+import { SchedulePicker } from './schedule-picker';
+import { createOrder, fetchOrderSchedule } from '@/api/orders';
 import { ApiError } from '@/api/envelope';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
@@ -38,6 +39,18 @@ export function CartScreen() {
   const [service, setService] = useState<'TAKEAWAY' | 'DINE_IN' | 'DELIVERY'>('TAKEAWAY');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [scheduledFor, setScheduledFor] = useState('');
+
+  const schedule = useQuery({
+    queryKey: ['order-slots', establishmentId],
+    queryFn: () => fetchOrderSchedule(establishmentId ?? ''),
+    enabled: Boolean(establishmentId) && lines.length > 0,
+    refetchInterval: 30_000,
+    staleTime: 0,
+  });
+  const scheduleValid = Boolean(schedule.data && (scheduledFor
+    ? schedule.data.slots.includes(scheduledFor)
+    : schedule.data.asapAvailable));
+  useEffect(() => { setScheduledFor(''); }, [establishmentId]);
 
   const totalAmount = lines.reduce((sum, line) => sum + Number(line.unitAmount) * line.quantity, 0);
   const restaurant = useQuery({
@@ -99,7 +112,7 @@ export function CartScreen() {
         paymentMethod,
         service,
         deliveryAddress: service === 'DELIVERY' ? deliveryAddress.trim() || undefined : undefined,
-        scheduledFor: scheduledFor.trim() ? new Date(scheduledFor).toISOString() : undefined,
+        scheduledFor: scheduledFor || undefined,
       }),
     onSuccess: async (order) => {
       await rememberOrder(queryClient, sessionId, order);
@@ -160,12 +173,10 @@ export function CartScreen() {
           {service === 'DELIVERY' ? (
             <TextField label="Adresse de livraison" value={deliveryAddress} onChangeText={setDeliveryAddress} />
           ) : null}
-          <TextField
-            label="Plus tard (optionnel, AAAA-MM-JJTHH:MM)"
-            value={scheduledFor}
-            onChangeText={setScheduledFor}
-            placeholder="2026-08-30T13:30"
-          />
+          <SchedulePicker data={schedule.data} loading={schedule.isPending} error={schedule.isError}
+            value={scheduledFor} onChange={setScheduledFor} service={service}
+            retry={() => { void schedule.refetch(); }} />
+          {!scheduleValid && scheduledFor ? <AppText color={tokens.color.feedback.error}>{t('schedule.expired')}</AppText> : null}
           <View style={styles.row}>
             {paymentOptions.map((option) => (
               <Pressable
@@ -195,7 +206,7 @@ export function CartScreen() {
             <Button
               label={t('orders.place')}
               loading={place.isPending}
-              disabled={!canOrder}
+              disabled={!canOrder || !scheduleValid || schedule.isError}
               onPress={() => {
                 setFormError(undefined);
                 place.mutate();

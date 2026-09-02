@@ -104,6 +104,9 @@ export function OrderDetailScreen() {
         subtitle={t(`orders.status.${order.status}`)}
       />
 
+      <AppText variant="muted">{order.scheduledFor ? t('schedule.requested', { date: new Intl.DateTimeFormat('fr-CI', {
+        timeZone: order.timezone ?? 'Africa/Abidjan', dateStyle: 'medium', timeStyle: 'short',
+      }).format(new Date(order.scheduledFor)) }) : t('schedule.immediate')}</AppText>
       {order.items.map((item) => (
         <View key={item.id} style={styles.line}>
           <View style={styles.lineBody}>
