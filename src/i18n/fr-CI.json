@@ -1,4 +1,16 @@
 {
+  "coupon": {
+    "title": "Un code promo ?",
+    "hint": "Un seul code par commande, valable dans ce restaurant. La remise est vérifiée à la confirmation.",
+    "code": "Votre code promo",
+    "apply": "Appliquer le code",
+    "remove": "Retirer ce code",
+    "subtotal": "Sous-total",
+    "discount": "Remise · {code}",
+    "total": "Total à payer",
+    "calculating": "Calcul…",
+    "retry": "Recalculer le panier"
+  },
   "common": {
     "retry": "Réessayer",
     "cancel": "Annuler",

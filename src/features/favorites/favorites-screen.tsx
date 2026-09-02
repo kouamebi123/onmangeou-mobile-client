@@ -27,14 +27,15 @@ export function FavoritesScreen() {
   });
 
   const [refreshing, setRefreshing] = useState(false);
+  const { refetch } = favorites;
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await favorites.refetch();
+      await refetch();
     } finally {
       setRefreshing(false);
     }
-  }, [favorites.refetch]);
+  }, [refetch]);
 
   const count = favorites.data?.length ?? 0;
   const subtitle = accessToken

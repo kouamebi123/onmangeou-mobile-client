@@ -125,6 +125,10 @@ export function OrderDetailScreen() {
         </View>
       ) : null}
 
+      {order.couponCode && order.discount && order.subtotal ? <>
+        <View style={styles.total}><AppText>{t('coupon.subtotal')}</AppText><Price value={order.subtotal} /></View>
+        <View style={styles.total}><AppText>{t('coupon.discount', { code: order.couponCode })}</AppText><AppText>−{order.discount.formatted}</AppText></View>
+      </> : null}
       <View style={styles.total}>
         <AppText variant="muted">{t('orders.cart')}</AppText>
         <Price value={order.total} />

@@ -35,6 +35,9 @@ export interface OrderView {
   notes: string | null;
   items: OrderItemView[];
   total: MoneyView;
+  subtotal?: MoneyView;
+  discount?: MoneyView;
+  couponCode?: string | null;
   placedAt: string;
   scheduledFor?: string | null;
   timezone?: string;
@@ -49,11 +52,12 @@ export async function createOrder(input: {
   service?: 'TAKEAWAY' | 'DINE_IN' | 'DELIVERY';
   deliveryAddress?: string;
   scheduledFor?: string;
-}): Promise<OrderView> {
+  couponCode?: string;
+}, idempotencyKey = createIdempotencyKey()): Promise<OrderView> {
   const envelope = await apiRequest<OrderView>('/orders', {
     method: 'POST',
     idempotent: true,
-    idempotencyKey: createIdempotencyKey(),
+    idempotencyKey,
     body: input,
   });
   return envelope.data;

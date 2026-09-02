@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { rememberOrder } from './order-cache';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { quoteOrder } from '@/api/commerce';
+import { createIdempotencyKey } from '@/api/device';
 import { fetchRestaurant, PUBLIC_MODULES, restaurantHasModule } from '@/api/discovery';
 import { SchedulePicker } from './schedule-picker';
 import { createOrder, fetchOrderSchedule } from '@/api/orders';
@@ -40,6 +41,10 @@ export function CartScreen() {
   const [service, setService] = useState<'TAKEAWAY' | 'DINE_IN' | 'DELIVERY'>('TAKEAWAY');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [scheduledFor, setScheduledFor] = useState('');
+  const [couponDraft, setCouponDraft] = useState('');
+  const [coupon, setCoupon] = useState<{ establishmentId: string; code: string } | null>(null);
+  const couponCode = coupon?.establishmentId === establishmentId ? coupon.code : undefined;
+  const attempt = useRef<{ payload: string; key: string } | null>(null);
 
   const schedule = useQuery({
     queryKey: ['order-slots', establishmentId],
@@ -62,6 +67,7 @@ export function CartScreen() {
   const canDeliver = restaurantHasModule(restaurant.data ?? {}, PUBLIC_MODULES.DELIVERY);
   const canPayOnline = restaurantHasModule(restaurant.data ?? {}, PUBLIC_MODULES.PAYMENTS);
   const canOrder = restaurantHasModule(restaurant.data ?? {}, PUBLIC_MODULES.ORDERS);
+  const canUseCoupon = restaurantHasModule(restaurant.data ?? {}, PUBLIC_MODULES.MARKETING);
   const serviceOptions = (
     [
       { id: 'TAKEAWAY', label: t('restaurant.takeaway') },
@@ -95,18 +101,21 @@ export function CartScreen() {
   }, [canDeliver, canPayOnline, paymentMethod, service]);
 
   const quote = useQuery({
-    queryKey: ['orders', 'quote', establishmentId, lines.map((line) => `${line.productId}:${line.quantity}`).join(',')],
+    queryKey: ['orders', 'quote', establishmentId, lines.map((line) => `${line.productId}:${line.quantity}`).join(','), couponCode],
     queryFn: () =>
       quoteOrder({
         establishmentId: establishmentId ?? '',
         items: lines.map((line) => ({ productId: line.productId, quantity: line.quantity })),
+        couponCode,
       }),
     enabled: Boolean(establishmentId) && lines.length > 0,
+    staleTime: 0,
+    retry: false,
   });
 
   const place = useMutation({
-    mutationFn: () =>
-      createOrder({
+    mutationFn: () => {
+      const input = {
         establishmentId: establishmentId ?? '',
         items: lines.map((line) => ({ productId: line.productId, quantity: line.quantity })),
         notes: notes.trim() || undefined,
@@ -114,9 +123,15 @@ export function CartScreen() {
         service,
         deliveryAddress: service === 'DELIVERY' ? deliveryAddress.trim() || undefined : undefined,
         scheduledFor: scheduledFor || undefined,
-      }),
+        couponCode,
+      };
+      const payload = JSON.stringify(input);
+      if (attempt.current?.payload !== payload) attempt.current = { payload, key: createIdempotencyKey() };
+      return createOrder(input, attempt.current.key);
+    },
     onSuccess: async (order) => {
       hapticSuccess();
+      attempt.current = null;
       await rememberOrder(queryClient, sessionId, order);
       clear();
       router.replace(`/order/${order.id}`);
@@ -127,7 +142,7 @@ export function CartScreen() {
   });
 
   return (
-    <Screen>
+    <Screen pointerEvents={place.isPending ? 'none' : 'auto'}>
       <PageHero icon="bag-handle-outline" kicker={t('app.name')} title={t('orders.cart')} subtitle={establishmentName ?? undefined} />
 
       {lines.length === 0 ? (
@@ -140,7 +155,7 @@ export function CartScreen() {
       ) : null}
 
       {lines.map((line) => (
-        <View key={line.productId} style={styles.line}>
+        <View key={line.productId} style={styles.line} pointerEvents={place.isPending ? 'none' : 'auto'}>
           <View style={styles.lineBody}>
             <AppText variant="subtitle">{line.name}</AppText>
             <AppText variant="muted">{line.formatted}</AppText>
@@ -217,11 +232,40 @@ export function CartScreen() {
             ))}
           </View>
           <TextField label={t('orders.notes')} value={notes} onChangeText={setNotes} multiline />
+          {canUseCoupon || couponCode ? (
+            <View style={styles.coupon}>
+              <AppText variant="subtitle">{t('coupon.title')}</AppText>
+              <AppText variant="muted">{t('coupon.hint')}</AppText>
+              {couponCode ? (
+                <>
+                  <AppText>{couponCode}</AppText>
+                  <Button label={t('coupon.remove')} variant="ghost" disabled={place.isPending}
+                    onPress={() => { setCoupon(null); setCouponDraft(''); setFormError(undefined); }} />
+                </>
+              ) : (
+                <>
+                  <TextField label={t('coupon.code')} value={couponDraft} onChangeText={setCouponDraft}
+                    autoCapitalize="characters" autoCorrect={false} maxLength={40} editable={!place.isPending} />
+                  <Button label={t('coupon.apply')} variant="outline" disabled={place.isPending || !/^[A-Z0-9_-]{3,40}$/.test(couponDraft.trim().toUpperCase())}
+                    onPress={() => { hapticLight(); setFormError(undefined); setCoupon({ establishmentId: establishmentId ?? '', code: couponDraft.trim().toUpperCase() }); }} />
+                </>
+              )}
+            </View>
+          ) : null}
           {paymentMethod !== 'CASH' ? <AppText>{t('payments.simulation')}</AppText> : null}
+          {quote.data?.couponCode && !quote.isError && !quote.isFetching ? (
+            <View style={styles.coupon}>
+              <View style={styles.total}><AppText>{t('coupon.subtotal')}</AppText><AppText>{quote.data.subtotal.formatted}</AppText></View>
+              <View style={styles.total}><AppText>{t('coupon.discount', { code: quote.data.couponCode })}</AppText>
+                <AppText color={tokens.color.brand.primary}>−{quote.data.discount.formatted}</AppText></View>
+            </View>
+          ) : null}
           <View style={styles.total}>
-            <AppText variant="muted">{t('orders.cart')}</AppText>
-            <AppText variant="title">{quote.data?.total.formatted ?? formatFcfa(String(totalAmount))}</AppText>
+            <AppText variant="muted">{t('coupon.total')}</AppText>
+            <AppText variant="title">{quote.isFetching ? t('coupon.calculating') : quote.isError ? '—' : quote.data?.total.formatted ?? formatFcfa(String(totalAmount))}</AppText>
           </View>
+          {quote.isError ? <><AppText color={tokens.color.feedback.error}>{quote.error instanceof ApiError ? quote.error.problem.detail : t('errors.generic')}</AppText>
+            <Button label={t('coupon.retry')} variant="outline" onPress={() => { void quote.refetch(); }} /></> : null}
           {formError ? <AppText color={tokens.color.feedback.error}>{formError}</AppText> : null}
           {!canOrder && restaurant.isSuccess ? (
             <AppText variant="muted">{t('orders.notAvailable')}</AppText>
@@ -232,7 +276,7 @@ export function CartScreen() {
             <Button
               label={t('orders.place')}
               loading={place.isPending}
-              disabled={!canOrder || !scheduleValid || schedule.isError}
+              disabled={!canOrder || !scheduleValid || schedule.isError || !quote.isSuccess || quote.isFetching}
               onPress={() => {
                 setFormError(undefined);
                 place.mutate();
@@ -246,6 +290,8 @@ export function CartScreen() {
 }
 
 const styles = StyleSheet.create({
+  coupon: { gap: tokens.spacing.sm, padding: tokens.spacing.md, borderRadius: tokens.radius.card,
+    backgroundColor: tokens.color.surface.mint, borderWidth: 1, borderColor: tokens.color.border.default },
   line: {
     flexDirection: 'row',
     alignItems: 'center',

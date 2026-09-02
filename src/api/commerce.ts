@@ -4,8 +4,9 @@ import type { MoneyView } from '@/api/types';
 export async function quoteOrder(input: {
   establishmentId: string;
   items: Array<{ productId: string; quantity: number }>;
+  couponCode?: string;
 }) {
-  const envelope = await apiRequest<{ total: MoneyView }>('/orders/quote', { method: 'POST', body: input, auth: false });
+  const envelope = await apiRequest<{ total: MoneyView; subtotal: MoneyView; discount: MoneyView; couponCode: string | null }>('/orders/quote', { method: 'POST', body: input, auth: false });
   return envelope.data;
 }
 

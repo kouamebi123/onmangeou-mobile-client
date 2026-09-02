@@ -43,14 +43,15 @@ export function HomeScreen() {
   const { items, featured, remaining } = buildHomeSections(restaurants.data?.items ?? [], openNow);
 
   const [refreshing, setRefreshing] = useState(false);
+  const { refetch } = restaurants;
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await restaurants.refetch();
+      await refetch();
     } finally {
       setRefreshing(false);
     }
-  }, [restaurants.refetch]);
+  }, [refetch]);
 
   return (
     <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} />}>

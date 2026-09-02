@@ -36,14 +36,15 @@ export function OrdersScreen() {
     refetchInterval: focused ? 8000 : false,
   });
 
+  const { refetch } = orders;
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await orders.refetch();
+      await refetch();
     } finally {
       setRefreshing(false);
     }
-  }, [orders.refetch]);
+  }, [refetch]);
 
   return (
     <Screen refreshControl={accessToken ? <RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} /> : undefined}>
