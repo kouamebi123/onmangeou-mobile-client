@@ -144,8 +144,10 @@ export function ProfileScreen() {
                 <View key={item.id} style={styles.info}>
                   <View style={styles.infoBody}>
                     <AppText>
-                      {item.establishment_name} · {item.status}
+                      {item.establishment_name} · {t(`reservation.${item.status}`)}
                     </AppText>
+                    <AppText>{new Date(item.starts_at).toLocaleString('fr-FR', { timeZone: item.timezone ?? 'Africa/Abidjan', dateStyle: 'full', timeStyle: 'short' })}</AppText>
+                    <AppText>{t('reservation.party', { count: String(item.party_size) })}</AppText>
                     {item.status === 'REQUESTED' || item.status === 'CONFIRMED' ? (
                       <Button
                         label="Annuler"

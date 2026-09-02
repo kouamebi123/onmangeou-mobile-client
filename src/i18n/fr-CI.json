@@ -1,4 +1,5 @@
 {
+  "common": { "loading": "Chargement…" },
   "payments": {
     "simulation": "Mode démonstration : aucun débit réel. Les moyens affichés ne sont pas encore connectés à leurs opérateurs.",
     "simulate": "Simuler le paiement (aucun débit)",
@@ -72,7 +73,7 @@
     "needAuth": "Connectez-vous pour envoyer la commande.",
     "ref": "Commande {ref}",
     "cancel": "Annuler la commande",
-    "confirmPickup": "J’ai récupéré",
+    "confirmPickup": "J'ai récupéré",
     "status": {
       "PENDING_PAYMENT": "Paiement en attente",
       "PENDING_RESTAURANT": "En attente du restaurant",
@@ -200,33 +201,6 @@
     "verify": "Valider le code",
     "devCode": "Code de test : {code}"
   },
-  "orders": {
-    "hero": "Vos passages au maquis, au même endroit.",
-    "empty": "Aucune commande pour le moment.",
-    "emptyDetail": "Ajoutez un plat depuis une fiche restaurant, puis validez le retrait.",
-    "exploreCta": "Explorer les restaurants",
-    "cart": "Panier",
-    "cartEmpty": "Votre panier est vide.",
-    "seeCart": "Voir le panier · {count}",
-    "add": "Ajouter",
-    "place": "Valider la commande",
-    "placing": "Envoi…",
-    "notes": "Note pour le restaurant",
-    "needAuth": "Connectez-vous pour envoyer la commande.",
-    "ref": "Commande {ref}",
-    "cancel": "Annuler la commande",
-    "confirmPickup": "J'ai récupéré",
-    "status": {
-      "PENDING_PAYMENT": "Paiement en attente",
-      "PENDING_RESTAURANT": "En attente du restaurant",
-      "ACCEPTED": "Acceptée",
-      "PREPARING": "En préparation",
-      "READY": "Prête à retirer",
-      "COMPLETED": "Récupérée",
-      "REJECTED": "Refusée",
-      "CANCELLED": "Annulée"
-    }
-  },
   "dish": {
     "vegetarian": "Végétarien",
     "halal": "Halal",
@@ -248,5 +222,40 @@
     "marketing.promotions": "Promotions",
     "analytics.advanced": "Statistiques avancées",
     "organization.multisite": "Multi-établissements"
+  },
+  "reservation": {
+    "title": "Réserver une table",
+    "date": "Choisir une date",
+    "time": "Choisir une heure",
+    "timezone": "Heure du restaurant · {timezone}",
+    "party": "{count} personne(s)",
+    "less": "Retirer une personne",
+    "more": "Ajouter une personne",
+    "notes": "Précisions (facultatif)",
+    "pendingNotice": "Cette demande reste soumise à la confirmation du restaurant. Les heures proposées ne garantissent pas une table disponible.",
+    "send": "Envoyer la demande",
+    "login": "Se connecter pour réserver",
+    "success": "Demande envoyée. Retrouvez son suivi dans votre profil.",
+    "invalidTime": "Choisissez une date et une heure futures.",
+    "REQUESTED": "En attente",
+    "CONFIRMED": "Confirmée",
+    "CANCELLED": "Annulée",
+    "REJECTED": "Refusée",
+    "SEATED": "Installé à table",
+    "COMPLETED": "Terminée",
+    "NO_SHOW": "Absent"
+  },
+  "review": {
+    "title": "Votre expérience au restaurant",
+    "score": "{score} sur 5 étoiles",
+    "body": "Commentaire (facultatif)",
+    "publish": "Publier mon avis",
+    "edit": "Modifier mon avis",
+    "save": "Enregistrer mon avis",
+    "success": "Votre avis a été enregistré.",
+    "verified": "Avis vérifié · commande terminée",
+    "help": "Notez la cuisine et l’accueil. Ne pénalisez pas le restaurant pour un livreur indépendant.",
+    "loadError": "Impossible de charger votre avis.",
+    "retry": "Réessayer"
   }
 }

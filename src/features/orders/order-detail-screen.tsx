@@ -1,14 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { confirmPayment, createPaymentIntent, createReview } from '@/api/commerce';
+import { confirmPayment, createPaymentIntent } from '@/api/commerce';
 import { cancelOrder, confirmPickup, fetchOrder } from '@/api/orders';
 import { ApiError } from '@/api/envelope';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
-import { TextField } from '@/components/text-field';
+import { ReviewForm } from './review-form';
 import { ErrorState } from '@/components/error-state';
 import { PageHero } from '@/components/page-hero';
 import { Price } from '@/components/price';
@@ -46,7 +45,6 @@ export function OrderDetailScreen() {
     onSuccess: invalidate,
   });
 
-  const [reviewBody, setReviewBody] = useState('');
   const pay = useMutation({
     mutationFn: async () => {
       const method = detail.data?.paymentMethod;
@@ -56,10 +54,7 @@ export function OrderDetailScreen() {
     },
     onSuccess: invalidate,
   });
-  const review = useMutation({
-    mutationFn: () => createReview({ orderId: id ?? '', score: 5, body: reviewBody.trim() || undefined }),
-    onSuccess: invalidate,
-  });
+
 
   if (detail.isLoading) {
     return (
@@ -85,7 +80,7 @@ export function OrderDetailScreen() {
       ? cancel.error.problem.detail
       : pickup.error instanceof ApiError
         ? pickup.error.problem.detail
-        : cancel.error || pickup.error || pay.error || review.error
+        : cancel.error || pickup.error || pay.error
           ? t('errors.generic') : undefined;
 
   return (
@@ -141,10 +136,7 @@ export function OrderDetailScreen() {
         <Button label={t('orders.confirmPickup')} loading={pickup.isPending} onPress={() => pickup.mutate()} />
       ) : null}
       {order.status === 'COMPLETED' ? (
-        <>
-          <TextField label="Votre avis" value={reviewBody} onChangeText={setReviewBody} />
-          <Button label="Publier un avis" loading={review.isPending} onPress={() => review.mutate()} />
-        </>
+        <ReviewForm orderId={order.id} establishmentId={order.establishmentId} />
       ) : null}
       <Button label={t('restaurant.back')} variant="ghost" onPress={() => router.back()} />
     </Screen>

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { createReservation, fetchEvents, fetchPromotions, fetchReviews, followRestaurant } from '@/api/commerce';
+import { fetchEvents, fetchPromotions, fetchReviews, followRestaurant } from '@/api/commerce';
 import { fetchRestaurant, PUBLIC_MODULES, restaurantHasModule } from '@/api/discovery';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
@@ -17,7 +17,7 @@ import { ErrorState } from '@/components/error-state';
 import { OfflineBanner } from '@/components/offline-banner';
 import { OpeningStatusText } from '@/components/opening-status-text';
 import { Skeleton } from '@/components/skeleton';
-import { TextField } from '@/components/text-field';
+import { ReservationForm } from './reservation-form';
 import { formatDistance } from '@/features/explore/format';
 import { restaurantCoverUrl } from '@/features/restaurant/cover';
 import { hoursRangeLabel, hoursSummary, orderedHours, todayWeekDay } from '@/features/restaurant/hours';
@@ -37,12 +37,6 @@ export function RestaurantScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const [hoursOpen, setHoursOpen] = useState(false);
-  const [partySize, setPartySize] = useState('2');
-  const [reserveAt, setReserveAt] = useState(() => {
-    const next = new Date(Date.now() + 2 * 60 * 60 * 1000);
-    const pad = (value: number) => String(value).padStart(2, '0');
-    return `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}T${pad(next.getHours())}:${pad(next.getMinutes())}`;
-  });
 
   const detail = useQuery({
     queryKey: ['restaurant', slug],
@@ -73,14 +67,6 @@ export function RestaurantScreen() {
     queryKey: ['promotions', detail.data?.id],
     queryFn: () => fetchPromotions(detail.data?.id ?? ''),
     enabled: Boolean(detail.data?.id) && canMarket,
-  });
-  const reserve = useMutation({
-    mutationFn: () =>
-      createReservation({
-        establishmentId: detail.data?.id ?? '',
-        startsAt: new Date(reserveAt).toISOString(),
-        partySize: Math.max(1, Number(partySize) || 2),
-      }),
   });
   const follow = useMutation({
     mutationFn: () => followRestaurant(detail.data?.id ?? '', true),
@@ -224,21 +210,7 @@ export function RestaurantScreen() {
           {canReserve ? (
             <View style={styles.card}>
               <View style={styles.cardBody}>
-                <AppText variant="subtitle">Réserver une table</AppText>
-                <TextField label="Nombre de personnes" keyboardType="number-pad" value={partySize} onChangeText={setPartySize} />
-                <TextField label="Date et heure" value={reserveAt} onChangeText={setReserveAt} />
-                <Button
-                  label="Envoyer la demande"
-                  loading={reserve.isPending}
-                  disabled={Number(partySize) < 1}
-                  onPress={() => reserve.mutate()}
-                />
-                {reserve.isSuccess ? (
-                  <AppText color={tokens.color.brand.primary}>Réservation envoyée.</AppText>
-                ) : null}
-                {reserve.isError ? (
-                  <AppText color={tokens.color.feedback.error}>La réservation n’a pas pu être envoyée.</AppText>
-                ) : null}
+                <ReservationForm key={restaurant.id} establishmentId={restaurant.id} timezone={restaurant.timezone} />
               </View>
             </View>
           ) : null}
@@ -397,6 +369,7 @@ export function RestaurantScreen() {
                 {reviews.data.slice(0, 3).map((item) => (
                   <AppText key={item.id}>
                     {item.score}/5 · {item.body ?? item.author_name}
+                    {item.verified ? ` · ${t('review.verified')}` : ''}
                   </AppText>
                 ))}
               </View>

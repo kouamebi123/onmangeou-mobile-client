@@ -42,13 +42,13 @@ export async function createReservation(input: {
   startsAt: string;
   partySize: number;
   notes?: string;
-}) {
-  const envelope = await apiRequest('/reservations', { method: 'POST', body: input });
+}, idempotencyKey: string) {
+  const envelope = await apiRequest('/reservations', { method: 'POST', body: input, idempotent: true, idempotencyKey });
   return envelope.data;
 }
 
 export async function fetchMyReservations() {
-  const envelope = await apiRequest<Array<{ id: string; public_ref: string; status: string; starts_at: string; establishment_name: string }>>(
+  const envelope = await apiRequest<Array<{ id: string; public_ref: string; status: string; starts_at: string; party_size: number; timezone?: string; establishment_name: string }>>(
     '/reservations',
   );
   return envelope.data;
@@ -58,13 +58,18 @@ export async function cancelReservation(id: string) {
   await apiRequest(`/reservations/${id}/cancel`, { method: 'POST' });
 }
 
-export async function createReview(input: { orderId: string; score: number; body?: string }) {
-  const envelope = await apiRequest('/reviews', { method: 'POST', body: input });
+export async function createReview(input: { orderId: string; score: number; body?: string }, idempotencyKey: string) {
+  const envelope = await apiRequest('/reviews', { method: 'POST', body: input, idempotent: true, idempotencyKey });
   return envelope.data;
 }
 
+export interface MyReview { id: string; score: number; body: string | null; status: string }
+export async function fetchMyReview(orderId: string) {
+  return (await apiRequest<MyReview | null>(`/orders/${orderId}/review`)).data;
+}
+
 export async function fetchReviews(establishmentId: string) {
-  const envelope = await apiRequest<Array<{ id: string; score: number; body: string | null; author_name: string | null; response: string | null }>>(
+  const envelope = await apiRequest<Array<{ id: string; score: number; body: string | null; verified: boolean; author_name: string | null; response: string | null }>>(
     `/restaurants/${establishmentId}/reviews`,
     { auth: false },
   );
