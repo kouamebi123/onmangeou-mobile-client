@@ -24,6 +24,7 @@ import { TextField } from '@/components/text-field';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/store/auth-store';
 import { tokens } from '@/theme';
+import { PushSettings } from '@/features/notifications/push-settings';
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -272,6 +273,7 @@ export function ProfileScreen() {
             })}
           </View>
 
+          <PushSettings />
           <Button
             label={t('common.signOut')}
             variant="outline"

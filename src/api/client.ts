@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { t } from '@/i18n';
 
 const DEFAULT_API_URL = 'https://onmangeou-backend-api-production.up.railway.app/api/v1';
+export interface UploadAsset { uri:string; name?:string; mimeType?:string }
 
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
@@ -184,5 +185,48 @@ async function fetchResponse(url: string, init: RequestInit): Promise<Response> 
     throw new ApiError(fallbackProblem(t(controller.signal.aborted ? 'network.timeout' : 'network.offline')));
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+async function rawUpload<T>(path: string, asset: UploadAsset): Promise<ResponseEnvelope<T>> {
+  const form = new FormData();
+  if (Platform.OS === 'web') {
+    const localImage = await fetchResponse(asset.uri, {});
+    if (!localImage.ok) throw new ApiError(fallbackProblem(t('imagePicker.unreadable')));
+    form.append('image', await localImage.blob(), asset.name ?? 'image.jpg');
+  } else {
+    form.append('image', {
+      uri: asset.uri,
+      name: asset.name ?? 'image.jpg',
+      type: asset.mimeType ?? 'image/jpeg',
+    } as unknown as Blob);
+  }
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'X-Request-Id': createRequestId(),
+    'X-Device-Install-Id': await getOrCreateInstallId(),
+  };
+  const token = useAuthStore.getState().accessToken;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const response = await fetchResponse(buildUrl(path), { method: 'POST', headers, body: form });
+  const parsed = await parseBody(response);
+  if (!response.ok) {
+    throw new ApiError(isProblemDetails(parsed) ? parsed : fallbackProblem("L'envoi de l'image a échoué."));
+  }
+  return unwrapEnvelope<T>(parsed);
+}
+
+export async function apiUpload<T>(path: string, asset: UploadAsset): Promise<ResponseEnvelope<T>> {
+  const sessionId = useAuthStore.getState().sessionId;
+  const organizationId = useAuthStore.getState().organizationId;
+  try {
+    return await rawUpload<T>(path, asset);
+  } catch (error) {
+    const unauthorized = error instanceof ApiError && error.problem.status === 401;
+    if (unauthorized && sessionId === useAuthStore.getState().sessionId && organizationId === useAuthStore.getState().organizationId) {
+      const refreshed = await refreshSession();
+      if (refreshed && refreshed === useAuthStore.getState().sessionId && organizationId === useAuthStore.getState().organizationId) return rawUpload<T>(path, asset);
+    }
+    throw error;
   }
 }

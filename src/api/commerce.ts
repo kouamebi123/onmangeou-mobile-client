@@ -66,13 +66,13 @@ export async function createReview(input: { orderId: string; score: number; body
   return envelope.data;
 }
 
-export interface MyReview { id: string; score: number; body: string | null; status: string }
+export interface MyReview { id: string; score: number; body: string | null; status: string; photos?: string[] }
 export async function fetchMyReview(orderId: string) {
   return (await apiRequest<MyReview | null>(`/orders/${orderId}/review`)).data;
 }
 
 export async function fetchReviews(establishmentId: string) {
-  const envelope = await apiRequest<Array<{ id: string; score: number; body: string | null; verified: boolean; author_name: string | null; response: string | null }>>(
+  const envelope = await apiRequest<Array<{ id: string; score: number; body: string | null; verified: boolean; author_name: string | null; response: string | null; photos?: string[] }>>(
     `/restaurants/${establishmentId}/reviews`,
     { auth: false },
   );

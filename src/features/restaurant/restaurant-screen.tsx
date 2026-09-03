@@ -1,4 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { ReviewPhotos } from '@/features/orders/review-photos';
+import { ReportReview } from '@/features/orders/report-review';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
@@ -374,10 +376,12 @@ export function RestaurantScreen() {
               <View style={styles.cardBody}>
                 <AppText variant="subtitle">{t('restaurant.reviews')}</AppText>
                 {reviews.data.slice(0, 3).map((item) => (
-                  <AppText key={item.id}>
+                  <View key={item.id} style={{gap:tokens.spacing.sm}}><AppText>
                     {item.score}/5 · {item.body ?? item.author_name}
                     {item.verified ? ` · ${t('review.verified')}` : ''}
                   </AppText>
+                  <ReviewPhotos reviewId={item.id} photos={item.photos}/>
+                  <ReportReview id={item.id}/></View>
                 ))}
               </View>
             </View>

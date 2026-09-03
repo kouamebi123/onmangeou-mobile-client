@@ -10,6 +10,7 @@ import { TextField } from '@/components/text-field';
 import { t } from '@/i18n';
 import { tokens } from '@/theme';
 import { useAuthStore } from '@/store/auth-store';
+import { ReviewPhotos } from './review-photos';
 
 export function ReviewForm({ orderId, establishmentId }: { orderId: string; establishmentId: string }) {
   const sessionId = useAuthStore((s) => s.sessionId);
@@ -43,6 +44,7 @@ function ReviewEditor({ orderId, establishmentId, existing }: { orderId: string;
     <AppText variant="subtitle">{existing ? t('review.edit') : t('review.title')}</AppText>
     <AppText variant="caption">{t('review.verified')}</AppText>
     <AppText variant="muted">{t('review.help')}</AppText>
+    {existing ? <ReviewPhotos reviewId={existing.id} photos={existing.photos} editable={existing.status==='PUBLISHED'}/> : <AppText variant="caption">{t('reviewPhotos.afterPublish')}</AppText>}
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: tokens.spacing.xs }}>
       {[1, 2, 3, 4, 5].map((value) => <Button key={value} label={value <= score ? '★' : '☆'}
         accessibilityLabel={t('review.score', { score: String(value) })} accessibilityState={{ selected: score === value }}

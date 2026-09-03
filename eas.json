@@ -8,6 +8,7 @@
       "node": "24.19.0",
       "pnpm": "10.20.0",
       "env": {
+        "ONMANGEOU_NATIVE_RUNTIME": "1",
         "EXPO_PUBLIC_API_URL": "https://onmangeou-backend-api-production.up.railway.app/api/v1"
       }
     },
@@ -18,12 +19,14 @@
       "distribution": "internal"
     },
     "preview": {
+      "channel": "preview",
       "extends": "base",
       "environment": "preview",
       "distribution": "internal",
       "android": { "buildType": "apk" }
     },
     "production": {
+      "channel": "production",
       "extends": "base",
       "environment": "production",
       "autoIncrement": true

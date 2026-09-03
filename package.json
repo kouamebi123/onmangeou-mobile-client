@@ -12,6 +12,7 @@
     "pnpm": ">=10.0.0"
   },
   "scripts": {
+    "update:native:preview": "ONMANGEOU_NATIVE_RUNTIME=1 npx eas-cli@23.2.0 update --branch preview --environment preview --platform all",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -34,9 +35,11 @@
     "expo-font": "14.0.12",
     "expo-haptics": "~15.0.8",
     "expo-image": "3.0.11",
+    "expo-image-picker": "17.0.11",
     "expo-linking": "8.0.12",
     "expo-location": "19.0.8",
     "expo-network": "8.0.8",
+    "expo-notifications": "~0.32.17",
     "expo-router": "6.0.24",
     "expo-secure-store": "15.0.8",
     "expo-splash-screen": "31.0.13",

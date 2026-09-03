@@ -10,9 +10,9 @@ const config: ExpoConfig = {
   updates: {
     url: 'https://u.expo.dev/b99b0cce-bdc3-4628-9513-2f4cb79fd65e',
   },
-  runtimeVersion: {
-    policy: 'sdkVersion',
-  },
+  runtimeVersion: process.env.ONMANGEOU_NATIVE_RUNTIME === '1'
+    ? { policy: 'fingerprint' }
+    : { policy: 'sdkVersion' },
   version: '0.1.0',
   sdkVersion: '54.0.0',
   icon: './assets/images/icon.png',
@@ -27,6 +27,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
     config: { googleMaps: { apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY ?? '' } },
     adaptiveIcon: {
       backgroundColor: '#173B36',
@@ -42,6 +43,8 @@ const config: ExpoConfig = {
     favicon: './assets/images/favicon.png',
   },
   plugins: [
+    'expo-notifications',
+    ['expo-image-picker', { photosPermission: 'Ajoutez une photo à votre avis sur le restaurant.', microphonePermission: false, cameraPermission: false }],
     'expo-router',
     ['expo-location', { locationWhenInUsePermission: 'Autoriser OnMangeOù à trouver les restaurants à proximité.' }],
     [
