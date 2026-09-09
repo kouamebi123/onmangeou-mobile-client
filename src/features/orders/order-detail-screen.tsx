@@ -1,70 +1,78 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef } from 'react';
-import { createIdempotencyKey } from '@/api/device';
-import { StyleSheet, View } from 'react-native';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRef } from "react";
+import { createIdempotencyKey } from "@/api/device";
+import { StyleSheet, View } from "react-native";
 
-import { confirmPayment, createPaymentIntent } from '@/api/commerce';
-import { cancelOrder, confirmPickup, fetchOrder } from '@/api/orders';
-import { ApiError } from '@/api/envelope';
-import { AppText } from '@/components/app-text';
-import { Button } from '@/components/button';
-import { ReviewForm } from './review-form';
-import { ErrorState } from '@/components/error-state';
-import { PageHero } from '@/components/page-hero';
-import { Price } from '@/components/price';
-import { Screen } from '@/components/screen';
-import { Skeleton } from '@/components/skeleton';
-import { t } from '@/i18n';
-import { tokens } from '@/theme';
-import { useAuthStore } from '@/store/auth-store';
-import { orderKeys } from './order-cache';
+import { confirmPayment, createPaymentIntent } from "@/api/commerce";
+import { cancelOrder, confirmPickup, fetchOrder } from "@/api/orders";
+import { ApiError } from "@/api/envelope";
+import { AppText } from "@/components/app-text";
+import { Button } from "@/components/button";
+import { ReviewForm } from "./review-form";
+import { ErrorState } from "@/components/error-state";
+import { PageHero } from "@/components/page-hero";
+import { Price } from "@/components/price";
+import { Screen } from "@/components/screen";
+import { Skeleton } from "@/components/skeleton";
+import { t } from "@/i18n";
+import { tokens } from "@/theme";
+import { useAuthStore } from "@/store/auth-store";
+import { orderKeys } from "./order-cache";
 
 export function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
   const sessionId = useAuthStore((state) => state.sessionId);
-  const paymentRequest = useRef({ payload: '', key: '', intentId: '' });
+  const paymentRequest = useRef({ payload: "", key: "", intentId: "" });
 
   const detail = useQuery({
-    queryKey: orderKeys.detail(sessionId, id ?? ''),
-    queryFn: () => fetchOrder(id ?? ''),
+    queryKey: orderKeys.detail(sessionId, id ?? ""),
+    queryFn: () => fetchOrder(id ?? ""),
     enabled: Boolean(id),
     refetchInterval: 8000,
   });
 
   const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: ['orders'] });
+    void queryClient.invalidateQueries({ queryKey: ["orders"] });
   };
 
   const cancel = useMutation({
-    mutationFn: () => cancelOrder(id ?? ''),
+    mutationFn: () => cancelOrder(id ?? ""),
     onSuccess: invalidate,
   });
 
   const pickup = useMutation({
-    mutationFn: () => confirmPickup(id ?? ''),
+    mutationFn: () => confirmPickup(id ?? ""),
     onSuccess: invalidate,
   });
 
   const pay = useMutation({
     mutationFn: async () => {
       const method = detail.data?.paymentMethod;
-      if (!method || method === 'CASH') throw new Error(t('payments.unavailable'));
+      if (!method || method === "CASH")
+        throw new Error(t("payments.unavailable"));
       const payload = JSON.stringify([id, method]);
       if (paymentRequest.current.payload !== payload) {
-        paymentRequest.current = { payload, key: createIdempotencyKey(), intentId: '' };
+        paymentRequest.current = {
+          payload,
+          key: createIdempotencyKey(),
+          intentId: "",
+        };
       }
       if (!paymentRequest.current.intentId) {
-        const intent = await createPaymentIntent(id ?? '', method, paymentRequest.current.key);
+        const intent = await createPaymentIntent(
+          id ?? "",
+          method,
+          paymentRequest.current.key,
+        );
         paymentRequest.current.intentId = intent.id;
       }
       return confirmPayment(paymentRequest.current.intentId);
     },
     onSuccess: invalidate,
   });
-
 
   if (detail.isLoading) {
     return (
@@ -79,7 +87,11 @@ export function OrderDetailScreen() {
     return (
       <Screen>
         <ErrorState onRetry={() => void detail.refetch()} />
-        <Button label={t('restaurant.back')} variant="ghost" onPress={() => router.back()} />
+        <Button
+          label={t("restaurant.back")}
+          variant="ghost"
+          onPress={() => router.back()}
+        />
       </Screen>
     );
   }
@@ -92,21 +104,30 @@ export function OrderDetailScreen() {
         ? pickup.error.problem.detail
         : pay.error instanceof ApiError
           ? pay.error.problem.detail
-        : cancel.error || pickup.error || pay.error
-          ? t('errors.generic') : undefined;
+          : cancel.error || pickup.error || pay.error
+            ? t("errors.generic")
+            : undefined;
 
   return (
     <Screen>
       <PageHero
         icon="receipt-outline"
-        kicker={t('orders.ref', { ref: order.publicRef })}
+        kicker={t("orders.ref", { ref: order.publicRef })}
         title={order.establishmentName}
         subtitle={t(`orders.status.${order.status}`)}
       />
 
-      <AppText variant="muted">{order.scheduledFor ? t('schedule.requested', { date: new Intl.DateTimeFormat('fr-CI', {
-        timeZone: order.timezone ?? 'Africa/Abidjan', dateStyle: 'medium', timeStyle: 'short',
-      }).format(new Date(order.scheduledFor)) }) : t('schedule.immediate')}</AppText>
+      <AppText variant="muted">
+        {order.scheduledFor
+          ? t("schedule.requested", {
+              date: new Intl.DateTimeFormat("fr-CI", {
+                timeZone: order.timezone ?? "Africa/Abidjan",
+                dateStyle: "medium",
+                timeStyle: "short",
+              }).format(new Date(order.scheduledFor)),
+            })
+          : t("schedule.immediate")}
+      </AppText>
       {order.items.map((item) => (
         <View key={item.id} style={styles.line}>
           <View style={styles.lineBody}>
@@ -120,52 +141,77 @@ export function OrderDetailScreen() {
 
       {order.notes ? (
         <View style={styles.card}>
-          <AppText variant="muted">{t('orders.notes')}</AppText>
+          <AppText variant="muted">{t("orders.notes")}</AppText>
           <AppText>{order.notes}</AppText>
         </View>
       ) : null}
 
-      {order.couponCode && order.discount && order.subtotal ? <>
-        <View style={styles.total}><AppText>{t('coupon.subtotal')}</AppText><Price value={order.subtotal} /></View>
-        <View style={styles.total}><AppText>{t('coupon.discount', { code: order.couponCode })}</AppText><AppText>−{order.discount.formatted}</AppText></View>
-      </> : null}
+      {order.couponCode && order.discount && order.subtotal ? (
+        <>
+          <View style={styles.total}>
+            <AppText>{t("coupon.subtotal")}</AppText>
+            <Price value={order.subtotal} />
+          </View>
+          <View style={styles.total}>
+            <AppText>
+              {t("coupon.discount", { code: order.couponCode })}
+            </AppText>
+            <AppText>−{order.discount.formatted}</AppText>
+          </View>
+        </>
+      ) : null}
       <View style={styles.total}>
-        <AppText variant="muted">{t('orders.cart')}</AppText>
+        <AppText variant="muted">{t("orders.cart")}</AppText>
         <Price value={order.total} />
       </View>
 
-      {actionError ? <AppText color={tokens.color.feedback.error}>{actionError}</AppText> : null}
+      {actionError ? (
+        <AppText color={tokens.color.feedback.error}>{actionError}</AppText>
+      ) : null}
 
-      {order.status === 'PENDING_PAYMENT' ? (
+      {order.status === "PENDING_PAYMENT" ? (
         <Button
-          label={t('payments.simulate')}
+          label={t("payments.simulate")}
           loading={pay.isPending}
           onPress={() => pay.mutate()}
         />
       ) : null}
-      {order.status === 'PENDING_RESTAURANT' || order.status === 'PENDING_PAYMENT' ? (
+      {order.status === "PENDING_RESTAURANT" ||
+      order.status === "PENDING_PAYMENT" ? (
         <Button
-          label={t('orders.cancel')}
+          label={t("orders.cancel")}
           variant="outline"
           loading={cancel.isPending}
           onPress={() => cancel.mutate()}
         />
       ) : null}
-      {order.status === 'READY' && order.service !== 'DELIVERY' ? (
-        <Button label={t('orders.confirmPickup')} loading={pickup.isPending} onPress={() => pickup.mutate()} />
+      {order.status === "READY" && order.service !== "DELIVERY" ? (
+        <Button
+          label={t("orders.confirmPickup")}
+          loading={pickup.isPending}
+          onPress={() => pickup.mutate()}
+        />
       ) : null}
-      {order.status === 'COMPLETED' ? (
-        <ReviewForm orderId={order.id} establishmentId={order.establishmentId} />
+      {order.status === "COMPLETED" ? (
+        <ReviewForm
+          orderId={order.id}
+          establishmentId={order.establishmentId}
+          delivery={order.service === "DELIVERY"}
+        />
       ) : null}
-      <Button label={t('restaurant.back')} variant="ghost" onPress={() => router.back()} />
+      <Button
+        label={t("restaurant.back")}
+        variant="ghost"
+        onPress={() => router.back()}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   line: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: tokens.spacing.sm,
     padding: tokens.spacing.md,
     backgroundColor: tokens.color.surface.white,
@@ -182,5 +228,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.color.border.default,
   },
-  total: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  total: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
 });

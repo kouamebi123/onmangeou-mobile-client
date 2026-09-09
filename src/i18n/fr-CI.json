@@ -1,5 +1,7 @@
 {
-  "imagePicker": { "unreadable": "Impossible de lire l’image sélectionnée." },
+  "imagePicker": {
+    "unreadable": "Impossible de lire l’image sélectionnée."
+  },
   "reviewPhotos": {
     "afterPublish": "Publiez votre avis pour ajouter jusqu’à trois photos.",
     "hint": "Trois photos maximum, 8 Mo par image. Évitez les visages et les informations privées.",
@@ -352,7 +354,9 @@
     "verified": "Avis vérifié · commande terminée",
     "help": "Notez la cuisine et l’accueil. Ne pénalisez pas le restaurant pour un livreur indépendant.",
     "loadError": "Impossible de charger votre avis.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "deliveryTitle": "Votre livreur (facultatif, note séparée du restaurant)",
+    "deliveryScore": "Livreur : {score} sur 5"
   },
   "schedule": {
     "asapClosedNext": "Commande immédiate indisponible selon les horaires enregistrés. Prochain créneau proposé : {date} ({timezone}).",
@@ -370,5 +374,8 @@
     "notice": "Horaires du restaurant ({timezone}). Heure souhaitée, à confirmer par le restaurant ; le délai de livraison peut varier.",
     "requested": "Prévue le {date}",
     "immediate": "Dès que possible"
+  },
+  "ads": {
+    "sponsored": "Sponsorisé"
   }
 }
