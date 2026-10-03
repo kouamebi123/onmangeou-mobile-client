@@ -19,3 +19,29 @@ export function reservationInstant(day: string, time: string, timeZone: string):
   }
   return null;
 }
+
+export interface SlotDay {
+  /** Jour au calendrier du restaurant, `YYYY-MM-DD`. */
+  day: string;
+  times: Array<{ label: string; iso: string }>;
+}
+
+/**
+ * Regroupe les créneaux du serveur par jour du restaurant.
+ *
+ * Le regroupement se fait dans le fuseau du restaurant : un service qui se
+ * termine à 02:00 appartient, pour le client, au jour où il lit « 01:30 ».
+ */
+export function groupSlotsByDay(slots: readonly string[], timeZone: string): SlotDay[] {
+  const clock = new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const days = new Map<string, SlotDay>();
+  for (const iso of [...slots].sort()) {
+    const instant = new Date(iso);
+    if (Number.isNaN(instant.getTime())) continue;
+    const day = wallDate(instant, timeZone);
+    const entry = days.get(day) ?? { day, times: [] };
+    entry.times.push({ label: clock.format(instant), iso });
+    days.set(day, entry);
+  }
+  return [...days.values()];
+}

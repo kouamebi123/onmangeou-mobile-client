@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/skeleton';
 import { ReservationForm } from './reservation-form';
 import { formatDistance } from '@/features/explore/format';
 import { restaurantCoverUrl } from '@/features/restaurant/cover';
-import { hoursRangeLabel, hoursSummary, orderedHours, todayWeekDay } from '@/features/restaurant/hours';
+import { hoursSummary, todayWeekDay, weekSchedule } from '@/features/restaurant/hours';
 import { useFavoriteToggle } from '@/features/favorites/use-favorite-toggle';
 import { hapticLight } from '@/feedback/haptics';
 import { t } from '@/i18n';
@@ -105,9 +105,10 @@ export function RestaurantScreen() {
 
   const restaurant = detail.data;
   const cartCount = cartEstablishmentId === restaurant.id ? cartLines.reduce((sum, line) => sum + line.quantity, 0) : 0;
-  const today = todayWeekDay();
+  const today = todayWeekDay(restaurant.timezone);
   const summary = hoursSummary(restaurant.hours);
-  const todaySlot = restaurant.hours.find((slot) => slot.weekDay === today);
+  const week = weekSchedule(restaurant.hours);
+  const todayRanges = week.find((day) => day.weekDay === today)?.ranges ?? [];
   const canCall = Boolean(restaurant.phoneE164);
   const canDirect = Number.isFinite(restaurant.latitude) && Number.isFinite(restaurant.longitude);
   const distance = formatDistance(restaurant.distanceMeters);
@@ -306,16 +307,14 @@ export function RestaurantScreen() {
                 <AppText variant="subtitle">{t('restaurant.hours')}</AppText>
                 <AppText>
                   {summary ??
-                    (todaySlot
-                      ? `${t('restaurant.todayHours')} · ${hoursRangeLabel(todaySlot.opensAtMinutes, todaySlot.closesAtMinutes)}`
-                      : t(`weekdays.${today}`))}
+                    `${t('restaurant.todayHours')} · ${todayRanges.length > 0 ? todayRanges.join(', ') : t('common.closed')}`}
                 </AppText>
                 {hoursOpen ? (
                   <View style={styles.hoursList}>
-                    {orderedHours(restaurant.hours).map((slot) => {
+                    {week.map((slot) => {
                       const isToday = slot.weekDay === today;
                       return (
-                        <View key={`${slot.weekDay}-${slot.opensAtMinutes}`} style={styles.hoursRow}>
+                        <View key={slot.weekDay} style={styles.hoursRow}>
                           <AppText
                             variant="caption"
                             color={isToday ? tokens.color.brand.deep : tokens.color.text.muted}
@@ -328,7 +327,7 @@ export function RestaurantScreen() {
                             color={isToday ? tokens.color.brand.deep : tokens.color.text.muted}
                             style={isToday ? styles.today : undefined}
                           >
-                            {hoursRangeLabel(slot.opensAtMinutes, slot.closesAtMinutes)}
+                            {slot.ranges.length > 0 ? slot.ranges.join(', ') : t('common.closed')}
                           </AppText>
                         </View>
                       );

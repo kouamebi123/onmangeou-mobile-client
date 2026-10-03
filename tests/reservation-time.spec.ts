@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { reservationInstant, wallDate } from '../src/features/restaurant/reservation-time';
+import { groupSlotsByDay, reservationInstant, wallDate } from '../src/features/restaurant/reservation-time';
 
 describe('Reservation time in the restaurant timezone', () => {
   it('converts Abidjan and Paris wall times independently of the phone', () => {
@@ -15,5 +15,30 @@ describe('Reservation time in the restaurant timezone', () => {
     const instant = new Date('2026-09-05T23:30:00Z');
     expect(wallDate(instant, 'Africa/Abidjan')).toBe('2026-09-05');
     expect(wallDate(instant, 'Europe/Paris')).toBe('2026-09-06');
+  });
+});
+
+describe('Server reservation slots', () => {
+  it('groups the slots by restaurant day and labels them at the restaurant time', () => {
+    const days = groupSlotsByDay(
+      ['2026-10-05T19:30:00.000Z', '2026-10-05T11:00:00.000Z', '2026-10-06T01:30:00.000Z', 'not-a-date'],
+      'Africa/Abidjan',
+    );
+    expect(days).toEqual([
+      {
+        day: '2026-10-05',
+        times: [
+          { label: '11:00', iso: '2026-10-05T11:00:00.000Z' },
+          { label: '19:30', iso: '2026-10-05T19:30:00.000Z' },
+        ],
+      },
+      { day: '2026-10-06', times: [{ label: '01:30', iso: '2026-10-06T01:30:00.000Z' }] },
+    ]);
+  });
+  it('does not use the phone timezone', () => {
+    // 22:30 UTC : déjà le lendemain 00:30 à Paris en été.
+    expect(groupSlotsByDay(['2026-09-05T22:30:00.000Z'], 'Europe/Paris')).toEqual([
+      { day: '2026-09-06', times: [{ label: '00:30', iso: '2026-09-05T22:30:00.000Z' }] },
+    ]);
   });
 });

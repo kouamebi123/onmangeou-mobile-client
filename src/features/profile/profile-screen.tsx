@@ -60,6 +60,9 @@ export function ProfileScreen() {
     queryKey: ['reservations', 'mine'],
     queryFn: fetchMyReservations,
     enabled: Boolean(accessToken),
+    // Le restaurant confirme ou refuse de son côté : l'état doit suivre sans tirer pour rafraîchir.
+    staleTime: 0,
+    refetchInterval: 20_000,
   });
   const support = useMutation({
     mutationFn: () => createSupportTicket(t('profile.helpSubject'), ticketBody.trim()),

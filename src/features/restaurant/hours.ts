@@ -9,8 +9,36 @@ export function formatClockMinutes(minutes: number): string {
   return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
 }
 
-export function todayWeekDay(): (typeof WEEK_DAYS)[number] {
-  return WEEK_DAYS[(new Date().getDay() + 6) % 7] ?? 'MONDAY';
+/**
+ * Jour courant à l'heure du restaurant.
+ *
+ * Avec l'horloge du téléphone, un client à Paris voyait « dimanche » à 01:00
+ * alors qu'il était encore samedi 23:00 à Abidjan, service en cours.
+ */
+export function todayWeekDay(timeZone?: string, now: Date = new Date()): (typeof WEEK_DAYS)[number] {
+  if (timeZone) {
+    try {
+      const name = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone }).format(now).toUpperCase();
+      const match = WEEK_DAYS.find((day) => day === name);
+      if (match) return match;
+    } catch {
+      // Fuseau inconnu de l'appareil : repli sur l'horloge locale.
+    }
+  }
+  return WEEK_DAYS[(now.getDay() + 6) % 7] ?? 'MONDAY';
+}
+
+/** Semaine complète : un jour sans plage est un jour de fermeture, à afficher comme tel. */
+export function weekSchedule(
+  hours: Array<{ weekDay: string; opensAtMinutes: number; closesAtMinutes: number }>,
+): Array<{ weekDay: (typeof WEEK_DAYS)[number]; ranges: string[] }> {
+  return WEEK_DAYS.map((weekDay) => ({
+    weekDay,
+    ranges: hours
+      .filter((slot) => slot.weekDay === weekDay)
+      .sort((left, right) => left.opensAtMinutes - right.opensAtMinutes)
+      .map((slot) => hoursRangeLabel(slot.opensAtMinutes, slot.closesAtMinutes)),
+  }));
 }
 
 export function hoursRangeLabel(opensAtMinutes: number, closesAtMinutes: number): string {

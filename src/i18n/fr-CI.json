@@ -341,7 +341,13 @@
     "REJECTED": "Refusée",
     "SEATED": "Installé à table",
     "COMPLETED": "Terminée",
-    "NO_SHOW": "Absent"
+    "NO_SHOW": "Absent",
+    "hint": "Choisissez un jour et une heure pendant le service.",
+    "open": "Choisir un créneau",
+    "close": "Fermer",
+    "loadingSlots": "Chargement des créneaux…",
+    "noSlots": "Aucun créneau disponible pour le moment.",
+    "selected": "{day} à {time}"
   },
   "review": {
     "title": "Votre expérience au restaurant",

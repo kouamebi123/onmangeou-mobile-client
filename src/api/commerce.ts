@@ -82,6 +82,21 @@ export async function createReservation(
   return envelope.data;
 }
 
+export interface ReservationSchedule {
+  timezone: string;
+  /** Faux tant que le restaurant n'a saisi aucun horaire : aucun créneau n'est alors imposé. */
+  hoursConfigured: boolean;
+  slots: string[];
+}
+
+export async function fetchReservationSlots(establishmentId: string) {
+  const envelope = await apiRequest<ReservationSchedule>(
+    `/restaurants/${establishmentId}/reservation-slots`,
+    { auth: false },
+  );
+  return envelope.data;
+}
+
 export async function fetchMyReservations() {
   const envelope =
     await apiRequest<

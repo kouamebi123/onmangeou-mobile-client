@@ -17,6 +17,11 @@ export interface RestaurantSummary {
   open: boolean;
   closesInMinutes: number | null;
   opensInMinutes: number | null;
+  /** Instants exacts fournis par l'API ; absents sur une ancienne version du serveur. */
+  closesAt?: string | null;
+  opensAt?: string | null;
+  /** Fuseau du restaurant : ses horaires s'affichent à son heure locale. */
+  timezone?: string;
   priceFrom: MoneyView | null;
   isFavorite: boolean;
   enabledModules: string[];
