@@ -8,9 +8,11 @@ import { tokens } from '@/theme';
 interface ScreenProps extends ScrollViewProps {
   children: ReactNode;
   scroll?: boolean;
+  /** Barre d'action fixe sous le contenu : le bouton principal reste à portée de pouce. */
+  footer?: ReactNode;
 }
 
-export function Screen({ children, scroll = true, ...rest }: ScreenProps) {
+export function Screen({ children, scroll = true, footer, ...rest }: ScreenProps) {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <OfflineBanner />
@@ -26,6 +28,7 @@ export function Screen({ children, scroll = true, ...rest }: ScreenProps) {
         ) : (
           <View style={styles.content}>{children}</View>
         )}
+        {footer ? <View style={styles.footer}>{footer}</View> : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -41,5 +44,12 @@ const styles = StyleSheet.create({
     padding: tokens.layout.screenPadding,
     gap: tokens.spacing.md,
     flexGrow: 1,
+  },
+  footer: {
+    paddingHorizontal: tokens.layout.screenPadding,
+    paddingVertical: tokens.spacing.sm,
+    backgroundColor: tokens.color.surface.white,
+    borderTopWidth: 1,
+    borderTopColor: tokens.color.border.default,
   },
 });

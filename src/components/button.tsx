@@ -39,6 +39,8 @@ export function Button({ label, variant = 'primary', loading = false, disabled, 
       style={({ pressed }) => [
         styles.base,
         { backgroundColor: palette.bg, borderColor: palette.border, opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1 },
+        // Léger retrait sous le doigt : le bouton répond avant même la réponse du serveur.
+        pressed && !isDisabled ? styles.pressed : null,
         style,
       ]}
       {...rest}
@@ -55,6 +57,7 @@ export function Button({ label, variant = 'primary', loading = false, disabled, 
 }
 
 const styles = StyleSheet.create({
+  pressed: { transform: [{ scale: 0.98 }] },
   base: {
     minHeight: tokens.layout.minTouchTarget,
     borderRadius: tokens.radius.md,

@@ -152,6 +152,43 @@
       "COMPLETED": "Récupérée",
       "REJECTED": "Refusée",
       "CANCELLED": "Annulée"
+    },
+    "steps": {
+      "sent": "Envoyée",
+      "accepted": "Acceptée",
+      "cooking": "En cuisine",
+      "ready": "Prête"
+    },
+    "progress": {
+      "PENDING_PAYMENT": "Réglez la commande pour l’envoyer au restaurant.",
+      "PENDING_RESTAURANT": "Le restaurant doit encore accepter votre commande.",
+      "ACCEPTED": "Le restaurant a accepté votre commande.",
+      "PREPARING": "Votre commande est en cuisine.",
+      "READY": "Vous pouvez venir la retirer.",
+      "READY_DELIVERY": "Votre commande part en livraison.",
+      "COMPLETED": "Commande récupérée. Bon appétit !",
+      "COMPLETED_DELIVERY": "Commande livrée. Bon appétit !",
+      "REJECTED": "Le restaurant n’a pas pu prendre cette commande.",
+      "CANCELLED": "Cette commande a été annulée."
+    },
+    "items": "{count} article(s)",
+    "total": "Total",
+    "placedAt": "Passée le {date}",
+    "pickup": "Retrait",
+    "payment": "Paiement",
+    "service": {
+      "TAKEAWAY": "À emporter",
+      "DINE_IN": "Sur place",
+      "DELIVERY": "Livraison"
+    },
+    "paymentMethod": {
+      "CASH": "Espèces",
+      "WAVE": "Wave",
+      "WERO": "Wero",
+      "ORANGE_MONEY": "Orange Money",
+      "MTN": "MTN MoMo",
+      "MOOV": "Moov Money",
+      "CARD": "Carte"
     }
   },
   "home": {
@@ -286,7 +323,9 @@
     "consentOn": "activé",
     "consentOff": "désactivé",
     "deleteReason": "Motif de suppression du compte",
-    "deleteAccount": "Supprimer mon compte"
+    "deleteAccount": "Supprimer mon compte",
+    "deleteWarning": "La suppression est définitive : vos favoris, adresses et réservations seront effacés.",
+    "deleteConfirm": "Supprimer définitivement mon compte"
   },
   "auth": {
     "kicker": "Espace client",

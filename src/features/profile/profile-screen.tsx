@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { deleteMyAccount, fetchConsents, fetchMe, logout, setConsent } from '@/api/auth';
@@ -20,6 +20,8 @@ import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
 import { HintRow, PageHero } from '@/components/page-hero';
 import { Screen } from '@/components/screen';
+import { StatusChip } from '@/components/status-chip';
+import { reservationStatusTone } from '@/features/orders/order-progress';
 import { TextField } from '@/components/text-field';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/store/auth-store';
@@ -35,6 +37,7 @@ export function ProfileScreen() {
   const [addressLabel, setAddressLabel] = useState(t('profile.addressHome'));
   const [addressLine, setAddressLine] = useState('');
   const [deleteReason, setDeleteReason] = useState('');
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const me = useQuery({
     queryKey: ['me'],
@@ -142,9 +145,16 @@ export function ProfileScreen() {
             <View style={styles.card}>
               <AppText variant="subtitle">{t('profile.notifications')}</AppText>
               {inbox.data.slice(0, 4).map((item) => (
-                <AppText key={item.id} variant="muted">
-                  {item.title}
-                </AppText>
+                <View key={item.id} style={styles.notice}>
+                  <View style={[styles.noticeDot, item.read_at ? styles.noticeDotRead : null]} />
+                  <View style={styles.infoBody}>
+                    {/* The title is often just the app name: the message itself is in the body. */}
+                    <AppText style={item.read_at ? undefined : styles.noticeUnread}>{item.body || item.title}</AppText>
+                    {item.body && item.title && item.title !== t('app.name') ? (
+                      <AppText variant="caption">{item.title}</AppText>
+                    ) : null}
+                  </View>
+                </View>
               ))}
               <Button label={t('profile.markAllRead')} variant="ghost" disabled={action.isPending} onPress={() => action.mutate(async () => {
                 await markNotificationsRead();
@@ -155,23 +165,33 @@ export function ProfileScreen() {
           {reservations.data && reservations.data.length > 0 ? (
             <View style={styles.card}>
               <AppText variant="subtitle">{t('profile.reservations')}</AppText>
-              {reservations.data.slice(0, 4).map((item) => (
-                <View key={item.id} style={styles.info}>
+              {reservations.data.slice(0, 4).map((item, index) => (
+                <View key={item.id} style={[styles.reservation, index > 0 ? styles.reservationNext : null]}>
                   <View style={styles.infoBody}>
-                    <AppText>
-                      {item.establishment_name} · {t(`reservation.${item.status}`)}
+                    <StatusChip label={t(`reservation.${item.status}`)} tone={reservationStatusTone(item.status)} />
+                    <AppText style={styles.reservationName}>{item.establishment_name}</AppText>
+                    <AppText variant="muted">
+                      {[
+                        new Date(item.starts_at).toLocaleString('fr-FR', {
+                          timeZone: item.timezone ?? 'Africa/Abidjan',
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }),
+                        t('reservation.party', { count: String(item.party_size) }),
+                      ].join(' · ')}
                     </AppText>
-                    <AppText>{new Date(item.starts_at).toLocaleString('fr-FR', { timeZone: item.timezone ?? 'Africa/Abidjan', dateStyle: 'full', timeStyle: 'short' })}</AppText>
-                    <AppText>{t('reservation.party', { count: String(item.party_size) })}</AppText>
-                    {item.status === 'REQUESTED' || item.status === 'CONFIRMED' ? (
-                      <Button
-                        label={t('common.cancel')}
-                        variant="ghost"
-                        disabled={cancelResa.isPending}
-                        onPress={() => cancelResa.mutate(item.id)}
-                      />
-                    ) : null}
                   </View>
+                  {item.status === 'REQUESTED' || item.status === 'CONFIRMED' ? (
+                    <Button
+                      label={t('common.cancel')}
+                      variant="ghost"
+                      disabled={cancelResa.isPending}
+                      onPress={() => cancelResa.mutate(item.id)}
+                    />
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -259,19 +279,24 @@ export function ProfileScreen() {
             <AppText variant="subtitle">{t('profile.consents')}</AppText>
             {(['MARKETING', 'LOCATION'] as const).map((type) => {
               const current = consents.data?.find((item) => item.type === type);
+              const label = type === 'MARKETING' ? t('profile.consentMarketing') : t('profile.consentLocation');
               return (
-                <Button
-                  key={type}
-                  label={`${type === 'MARKETING' ? t('profile.consentMarketing') : t('profile.consentLocation')} · ${current?.granted ? t('profile.consentOn') : t('profile.consentOff')}`}
-                  variant="ghost"
-                  disabled={action.isPending || !consents.data}
-                  onPress={() =>
-                    action.mutate(async () => {
-                      await setConsent(type, !current?.granted);
-                      await queryClient.invalidateQueries({ queryKey: ['me', 'consents'] });
-                    })
-                  }
-                />
+                <View key={type} style={styles.consent}>
+                  <AppText style={styles.linkLabel}>{label}</AppText>
+                  <Switch
+                    accessibilityLabel={label}
+                    value={Boolean(current?.granted)}
+                    disabled={action.isPending || !consents.data}
+                    onValueChange={(granted) =>
+                      action.mutate(async () => {
+                        await setConsent(type, granted);
+                        await queryClient.invalidateQueries({ queryKey: ['me', 'consents'] });
+                      })
+                    }
+                    trackColor={{ false: tokens.color.border.default, true: tokens.color.brand.primary }}
+                    thumbColor={tokens.color.surface.white}
+                  />
+                </View>
               );
             })}
           </View>
@@ -289,16 +314,29 @@ export function ProfileScreen() {
               }
             })}
           />
-          <TextField label={t('profile.deleteReason')} value={deleteReason} onChangeText={setDeleteReason} />
           <Button
             label={t('profile.deleteAccount')}
-            variant="destructive"
-            disabled={deleteReason.trim().length < 4 || action.isPending}
-            onPress={() => action.mutate(async () => {
-              await deleteMyAccount(deleteReason.trim());
-              await clear();
-            })}
+            variant="ghost"
+            accessibilityState={{ expanded: deleteOpen }}
+            onPress={() => setDeleteOpen((open) => !open)}
           />
+          {deleteOpen ? (
+            <View style={styles.card}>
+              <AppText variant="muted">{t('profile.deleteWarning')}</AppText>
+              <TextField label={t('profile.deleteReason')} value={deleteReason} onChangeText={setDeleteReason} />
+              <Button
+                label={t('profile.deleteConfirm')}
+                variant="destructive"
+                disabled={deleteReason.trim().length < 4 || action.isPending}
+                onPress={() =>
+                  action.mutate(async () => {
+                    await deleteMyAccount(deleteReason.trim());
+                    await clear();
+                  })
+                }
+              />
+            </View>
+          ) : null}
         </>
       )}
     </Screen>
@@ -367,6 +405,23 @@ const styles = StyleSheet.create({
   info: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.sm },
   infoBody: { flex: 1, gap: 2 },
   divider: { height: 1, backgroundColor: tokens.color.border.default },
+  notice: { flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.sm },
+  noticeDot: { width: 8, height: 8, borderRadius: 4, marginTop: 7, backgroundColor: tokens.color.brand.accent },
+  noticeDotRead: { backgroundColor: tokens.color.border.default },
+  noticeUnread: { fontFamily: tokens.typography.family.semibold, color: tokens.color.brand.deep },
+  reservation: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.sm },
+  reservationNext: {
+    paddingTop: tokens.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: tokens.color.border.default,
+  },
+  reservationName: { fontFamily: tokens.typography.family.semibold, color: tokens.color.brand.deep },
+  consent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.sm,
+    minHeight: tokens.layout.minTouchTarget,
+  },
   link: {
     flexDirection: 'row',
     alignItems: 'center',

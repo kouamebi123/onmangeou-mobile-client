@@ -150,8 +150,42 @@ export function CartScreen() {
     },
   });
 
+  const totalLabel = quote.isFetching
+    ? t('coupon.calculating')
+    : quote.isError
+      ? '—'
+      : (quote.data?.total.formatted ?? formatFcfa(String(totalAmount)));
+
   return (
-    <Screen pointerEvents={place.isPending ? 'none' : 'auto'}>
+    <Screen
+      pointerEvents={place.isPending ? 'none' : 'auto'}
+      footer={
+        lines.length > 0 ? (
+          <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
+            <View style={styles.footerTotal}>
+              <AppText variant="caption">{t('coupon.total')}</AppText>
+              <AppText variant="subtitle" style={styles.amount}>
+                {totalLabel}
+              </AppText>
+            </View>
+            {!accessToken ? (
+              <Button label={t('common.signIn')} style={styles.footerAction} onPress={() => router.push('/auth')} />
+            ) : (
+              <Button
+                label={t('orders.place')}
+                style={styles.footerAction}
+                loading={place.isPending}
+                disabled={!canOrder || !scheduleValid || schedule.isError || !quote.isSuccess || quote.isFetching}
+                onPress={() => {
+                  setFormError(undefined);
+                  place.mutate();
+                }}
+              />
+            )}
+          </View>
+        ) : undefined
+      }
+    >
       <PageHero
         icon="bag-handle-outline"
         kicker={t('app.name')}
@@ -350,11 +384,7 @@ export function CartScreen() {
             <View style={styles.totalHighlight}>
               <AppText variant="muted">{t('coupon.total')}</AppText>
               <AppText variant="title" color={tokens.color.brand.primary} style={styles.amount}>
-                {quote.isFetching
-                  ? t('coupon.calculating')
-                  : quote.isError
-                    ? '—'
-                    : (quote.data?.total.formatted ?? formatFcfa(String(totalAmount)))}
+                {totalLabel}
               </AppText>
             </View>
             {quote.isError ? (
@@ -373,23 +403,9 @@ export function CartScreen() {
             ) : null}
             {formError ? <AppText color={tokens.color.feedback.error}>{formError}</AppText> : null}
             {!canOrder && restaurant.isSuccess ? <AppText variant="muted">{t('orders.notAvailable')}</AppText> : null}
-            {!accessToken ? (
-              <Button label={t('orders.needAuth')} onPress={() => router.push('/auth')} />
-            ) : (
-              <Button
-                label={t('orders.place')}
-                loading={place.isPending}
-                disabled={!canOrder || !scheduleValid || schedule.isError || !quote.isSuccess || quote.isFetching}
-                onPress={() => {
-                  setFormError(undefined);
-                  place.mutate();
-                }}
-              />
-            )}
           </View>
         </>
       ) : null}
-      <View style={{ height: insets.bottom + tokens.spacing.md }} />
     </Screen>
   );
 }
@@ -414,6 +430,9 @@ const styles = StyleSheet.create({
     paddingTop: tokens.spacing.md,
   },
   amount: { fontVariant: ['tabular-nums'] },
+  footer: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.md },
+  footerTotal: { gap: 2 },
+  footerAction: { flex: 1 },
   line: {
     flexDirection: 'row',
     flexWrap: 'wrap',

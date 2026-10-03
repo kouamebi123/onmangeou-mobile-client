@@ -3,6 +3,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { orderKeys } from './order-cache';
+import { orderStatusTone } from './order-progress';
 import { Ionicons } from '@expo/vector-icons';
 
 import { fetchMyOrders, type OrderView } from '@/api/orders';
@@ -13,6 +14,7 @@ import { PageHero } from '@/components/page-hero';
 import { Price } from '@/components/price';
 import { Screen } from '@/components/screen';
 import { Skeleton } from '@/components/skeleton';
+import { StatusChip } from '@/components/status-chip';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/store/auth-store';
 import { tokens } from '@/theme';
@@ -87,16 +89,33 @@ export function OrdersScreen() {
 }
 
 function OrderRow({ order, onPress }: { order: OrderView; onPress: () => void }) {
+  const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+  const placedAt = new Intl.DateTimeFormat('fr-FR', {
+    timeZone: order.timezone ?? 'Africa/Abidjan',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(order.placedAt));
+
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.card}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${order.establishmentName}, ${t(`orders.status.${order.status}`)}`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}
+    >
       <View style={styles.cardBody}>
+        <StatusChip label={t(`orders.status.${order.status}`)} tone={orderStatusTone(order.status)} />
         <AppText variant="subtitle">{order.establishmentName}</AppText>
-        <AppText variant="caption" color={tokens.color.brand.primary}>
-          {t(`orders.status.${order.status}`)}
+        <AppText variant="muted">
+          {[placedAt, t('orders.items', { count: String(itemCount) })].join(' · ')}
         </AppText>
-        <AppText variant="muted">{t('orders.ref', { ref: order.publicRef })}</AppText>
       </View>
-      <Price value={order.total} />
+      <View style={styles.cardSide}>
+        <Price value={order.total} />
+        <Ionicons name="chevron-forward" size={18} color={tokens.color.text.muted} />
+      </View>
     </Pressable>
   );
 }
@@ -130,5 +149,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.color.border.default,
   },
-  cardBody: { flex: 1, gap: 2 },
+  cardPressed: { opacity: 0.85, transform: [{ scale: 0.99 }] },
+  cardBody: { flex: 1, gap: tokens.spacing.xxs },
+  cardSide: { alignItems: 'flex-end', gap: tokens.spacing.xs },
 });
