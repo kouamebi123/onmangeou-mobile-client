@@ -116,7 +116,7 @@ export function PushSettings({ headless = false }: { headless?: boolean }) {
           refresh();
           const data = response.notification.request.content.data;
           if (
-            data.kind === "ORDER" &&
+            data?.kind === "ORDER" &&
             typeof data.targetId === "string" &&
             /^[0-9a-f-]{36}$/i.test(data.targetId)
           )

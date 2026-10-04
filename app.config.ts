@@ -14,7 +14,7 @@ const config: ExpoConfig = {
     ? { policy: 'fingerprint' }
     : { policy: 'sdkVersion' },
   version: '0.1.0',
-  sdkVersion: '54.0.0',
+  sdkVersion: '57.0.0',
   icon: './assets/images/icon.png',
   scheme: 'onmangeou',
   userInterfaceStyle: 'light',
