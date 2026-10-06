@@ -13,9 +13,11 @@ import { Logo } from '@/components/logo';
 import { HeroBlobs } from '@/components/page-hero';
 import { PhoneField } from '@/components/phone-field';
 import { Screen } from '@/components/screen';
+import { Signature } from '@/components/signature';
 import { TextField } from '@/components/text-field';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/store/auth-store';
+import { useTransitionStore } from '@/store/transition-store';
 import { tokens } from '@/theme';
 
 const phoneSchema = z.object({
@@ -31,6 +33,8 @@ type CodeValues = z.infer<typeof codeSchema>;
 
 export function OtpScreen() {
   const router = useRouter();
+  const coverWelcome = useTransitionStore((state) => state.coverWelcome);
+  const revealWelcome = useTransitionStore((state) => state.revealWelcome);
   const setSession = useAuthStore((state) => state.setSession);
   const [phone, setPhone] = useState('');
   const [devCode, setDevCode] = useState<string | undefined>();
@@ -126,13 +130,17 @@ export function OtpScreen() {
                 setFormError(undefined);
                 try {
                   const tokens = await verifyOtp(phone, values.code);
+                  // Le voile couvre l'écran pendant le retour vers l'accueil.
+                  await coverWelcome();
                   await setSession(tokens);
                   if (router.canGoBack()) {
                     router.back();
                   } else {
                     router.replace('/(tabs)');
                   }
+                  revealWelcome();
                 } catch (error) {
+                  revealWelcome();
                   setFormError(error instanceof ApiError ? error.problem.detail : t('errors.generic'));
                 }
               })}
@@ -149,6 +157,7 @@ export function OtpScreen() {
           </>
         )}
       </View>
+      <Signature />
     </Screen>
   );
 }

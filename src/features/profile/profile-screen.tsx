@@ -20,6 +20,7 @@ import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
 import { HintRow, PageHero } from '@/components/page-hero';
 import { Screen } from '@/components/screen';
+import { Signature } from '@/components/signature';
 import { StatusChip } from '@/components/status-chip';
 import { reservationStatusTone } from '@/features/orders/order-progress';
 import { TextField } from '@/components/text-field';
@@ -339,6 +340,7 @@ export function ProfileScreen() {
           ) : null}
         </>
       )}
+      <Signature />
     </Screen>
   );
 }

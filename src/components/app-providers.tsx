@@ -10,7 +10,9 @@ import { ActivityIndicator, AppState, Platform, StyleSheet, View } from 'react-n
 import * as SplashScreen from 'expo-splash-screen';
 
 import { BrandIntro } from '@/components/brand-intro';
+import { WelcomeVeil } from '@/components/welcome-veil';
 import { ProfileOnboarding } from '@/components/profile-onboarding';
+import { startCartPersistence } from '@/store/cart-persistence';
 import { kvGet, kvSet } from '@/store/kv-store';
 import { tokens } from '@/theme';
 import { useAuthStore } from '@/store/auth-store';
@@ -54,6 +56,7 @@ export function AppProviders({ children }: AppProvidersProps) {
 
   useEffect(() => {
     void hydrate();
+    void startCartPersistence();
   }, [hydrate]);
 
   useEffect(() => {
@@ -86,6 +89,7 @@ export function AppProviders({ children }: AppProvidersProps) {
       <PushSettings headless />
       <View style={styles.shell}>
         <ProfileOnboarding>{children}</ProfileOnboarding>
+        <WelcomeVeil />
         {intro === 'play' ? <BrandIntro onDone={finishIntro} /> : null}
       </View>
     </QueryClientProvider>

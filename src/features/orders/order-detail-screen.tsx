@@ -5,6 +5,7 @@ import { createIdempotencyKey } from "@/api/device";
 import { StyleSheet, View } from "react-native";
 
 import { confirmPayment, createPaymentIntent } from "@/api/commerce";
+import { fetchRestaurant } from "@/api/discovery";
 import { cancelOrder, confirmPickup, fetchOrder } from "@/api/orders";
 import { ApiError } from "@/api/envelope";
 import { AppText } from "@/components/app-text";
@@ -17,6 +18,8 @@ import { Skeleton } from "@/components/skeleton";
 import { t } from "@/i18n";
 import { tokens } from "@/theme";
 import { useAuthStore } from "@/store/auth-store";
+import { reorderLines } from "@/store/cart-snapshot";
+import { useCartStore } from "@/store/cart-store";
 import { orderKeys } from "./order-cache";
 import { OrderTracker } from "./order-tracker";
 
@@ -26,6 +29,7 @@ export function OrderDetailScreen() {
   const queryClient = useQueryClient();
   const sessionId = useAuthStore((state) => state.sessionId);
   const paymentRequest = useRef({ payload: "", key: "", intentId: "" });
+  const replaceCart = useCartStore((state) => state.replace);
 
   const detail = useQuery({
     queryKey: orderKeys.detail(sessionId, id ?? ""),
@@ -72,6 +76,32 @@ export function OrderDetailScreen() {
       return confirmPayment(paymentRequest.current.intentId);
     },
     onSuccess: invalidate,
+  });
+
+  const reorder = useMutation({
+    mutationFn: async () => {
+      const order = detail.data;
+      if (!order) throw new Error(t("errors.generic"));
+      const restaurant = await fetchRestaurant(order.establishmentSlug);
+      const menu = restaurant.menus.flatMap((entry) =>
+        entry.categories.flatMap((category) => category.products),
+      );
+      const result = reorderLines(order.items, menu);
+      if (result.lines.length === 0) {
+        throw new Error(t("orders.reorderNone"));
+      }
+      replaceCart({
+        establishmentId: restaurant.id,
+        establishmentName: restaurant.name,
+        establishmentSlug: restaurant.slug,
+        lines: result.lines,
+      });
+      return result;
+    },
+    onSuccess: (result) => {
+      // Tout est disponible : direction le panier. Sinon on explique d'abord ce qui manque.
+      if (result.missing.length === 0) router.push("/cart");
+    },
   });
 
   if (detail.isLoading) {
@@ -226,6 +256,45 @@ export function OrderDetailScreen() {
           establishmentId={order.establishmentId}
           delivery={order.service === "DELIVERY"}
         />
+      ) : null}
+      {order.status === "COMPLETED" ||
+      order.status === "REJECTED" ||
+      order.status === "CANCELLED" ? (
+        <View style={styles.card}>
+          {reorder.isSuccess && reorder.data.missing.length > 0 ? (
+            <>
+              <AppText variant="muted" accessibilityLiveRegion="polite">
+                {t("orders.reorderPartial", {
+                  names: reorder.data.missing.join(", "),
+                })}
+              </AppText>
+              <Button
+                label={t("orders.seeCartShort")}
+                onPress={() => router.push("/cart")}
+              />
+            </>
+          ) : (
+            <>
+              <AppText variant="muted">{t("orders.reorderHint")}</AppText>
+              <Button
+                label={t("orders.reorder")}
+                variant={order.status === "COMPLETED" ? "primary" : "outline"}
+                loading={reorder.isPending}
+                onPress={() => reorder.mutate()}
+              />
+            </>
+          )}
+          {reorder.isError ? (
+            <AppText
+              accessibilityLiveRegion="polite"
+              color={tokens.color.feedback.error}
+            >
+              {reorder.error instanceof ApiError
+                ? reorder.error.problem.detail
+                : reorder.error.message}
+            </AppText>
+          ) : null}
+        </View>
       ) : null}
       <Button
         label={t("restaurant.back")}

@@ -213,8 +213,6 @@ export function RestaurantScreen() {
               disabled={favoritePending}
               onPress={toggleFavorite}
             />
-          </View>
-          <View style={styles.actions}>
             <ActionChip icon="notifications-outline" label={t('restaurant.follow')} onPress={() => follow.mutate()} />
           </View>
           {canReserve ? (
@@ -569,7 +567,7 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontSize: tokens.typography.size.xxl },
   verifiedLabel: { fontFamily: tokens.typography.family.semibold },
   lead: { color: tokens.color.text.primary },
-  actions: { flexDirection: 'row', gap: tokens.spacing.sm },
+  actions: { flexDirection: 'row', gap: tokens.spacing.xs },
   action: {
     flex: 1,
     minHeight: 76,

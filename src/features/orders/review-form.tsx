@@ -1,6 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { createReview, fetchMyReview, type MyReview } from "@/api/commerce";
 import { createIdempotencyKey } from "@/api/device";
 import { ApiError } from "@/api/envelope";
@@ -102,26 +103,36 @@ function ReviewEditor({
       ) : (
         <AppText variant="caption">{t("reviewPhotos.afterPublish")}</AppText>
       )}
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: tokens.spacing.xs,
-        }}
-      >
+      <View style={{ flexDirection: "row", gap: tokens.spacing.xs }}>
         {[1, 2, 3, 4, 5].map((value) => (
-          <Button
+          <Pressable
             key={value}
-            label={value <= score ? "★" : "☆"}
+            accessibilityRole="button"
             accessibilityLabel={t("review.score", { score: String(value) })}
             accessibilityState={{ selected: score === value }}
-            variant={value <= score ? "primary" : "outline"}
             disabled={save.isPending}
+            hitSlop={4}
             onPress={() => {
               setScore(value);
               save.reset();
             }}
-          />
+            style={{
+              width: tokens.layout.minTouchTarget,
+              height: tokens.layout.minTouchTarget,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons
+              name={value <= score ? "star" : "star-outline"}
+              size={30}
+              color={
+                value <= score
+                  ? tokens.color.brand.accent
+                  : tokens.color.text.muted
+              }
+            />
+          </Pressable>
         ))}
       </View>
       {delivery ? (

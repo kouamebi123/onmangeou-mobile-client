@@ -95,7 +95,8 @@
     "signOut": "Se déconnecter"
   },
   "app": {
-    "name": "OnMangeOù"
+    "name": "OnMangeOù",
+    "signedBy": "Signé"
   },
   "tabs": {
     "home": "Accueil",
@@ -189,11 +190,16 @@
       "MTN": "MTN MoMo",
       "MOOV": "Moov Money",
       "CARD": "Carte"
-    }
+    },
+    "reorder": "Commander à nouveau",
+    "reorderHint": "Retrouvez les mêmes plats dans votre panier, aux prix du jour.",
+    "reorderNone": "Ces plats ne sont plus disponibles pour le moment.",
+    "reorderPartial": "Indisponible aujourd’hui : {names}. Le reste est dans votre panier.",
+    "seeCartShort": "Voir le panier"
   },
   "home": {
     "greeting": "Bonjour",
-    "title": "Où manger près de vous ?",
+    "title": "Où manger près de vous ?",
     "subtitle": "Menus et horaires près de vous, sans créer de compte.",
     "city": "Abidjan",
     "openNowTitle": "Ouverts maintenant",
@@ -422,5 +428,9 @@
   },
   "ads": {
     "sponsored": "Sponsorisé"
+  },
+  "transition": {
+    "welcome": "Bienvenue",
+    "ready": "Vous êtes connecté."
   }
 }

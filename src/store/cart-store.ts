@@ -1,12 +1,8 @@
 import { create } from 'zustand';
 
-export interface CartLine {
-  productId: string;
-  name: string;
-  unitAmount: string;
-  formatted: string;
-  quantity: number;
-}
+import type { CartLine, CartSnapshot } from './cart-snapshot';
+
+export type { CartLine } from './cart-snapshot';
 
 interface CartState {
   establishmentId: string | null;
@@ -24,6 +20,8 @@ interface CartState {
   }) => void;
   increment: (productId: string) => void;
   decrement: (productId: string) => void;
+  /** Remplace tout le panier : relecture au démarrage ou « commander à nouveau ». */
+  replace: (snapshot: CartSnapshot) => void;
   clear: () => void;
 }
 
@@ -89,6 +87,8 @@ export const useCartStore = create<CartState>((set, get) => ({
         )
         .filter((line) => line.quantity > 0),
     }),
+
+  replace: (snapshot) => set({ ...snapshot }),
 
   clear: () => set({ establishmentId: null, establishmentName: null, establishmentSlug: null, lines: [] }),
 }));
