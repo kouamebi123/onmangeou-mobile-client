@@ -17,6 +17,7 @@ import { Button } from '@/components/button';
 import { DishCard } from '@/components/dish-card';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorState } from '@/components/error-state';
+import { Appear, Expandable } from '@/components/motion';
 import { OfflineBanner } from '@/components/offline-banner';
 import { OpeningStatusText } from '@/components/opening-status-text';
 import { Skeleton } from '@/components/skeleton';
@@ -29,6 +30,7 @@ import { hapticLight } from '@/feedback/haptics';
 import { t } from '@/i18n';
 import { useCartStore } from '@/store/cart-store';
 import { tokens } from '@/theme';
+import { motion } from '@/theme/motion';
 
 const SERVICE_META: Record<string, { label: string; icon: keyof typeof Ionicons.glyphMap }> = {
   DINE_IN: { label: 'restaurant.dineIn', icon: 'restaurant-outline' },
@@ -134,6 +136,7 @@ export function RestaurantScreen() {
             source={{ uri: restaurantCoverUrl(restaurant.coverImageUrl, restaurant.id) }}
             style={styles.cover}
             contentFit="cover"
+            transition={motion.imageMs}
           />
           <View style={styles.heroShade} />
           <SafeAreaView edges={['top']} style={styles.heroBar}>
@@ -170,11 +173,12 @@ export function RestaurantScreen() {
               source={{ uri: restaurantCoverUrl(restaurant.coverImageUrl, restaurant.id) }}
               style={styles.avatarImage}
               contentFit="cover"
+              transition={motion.imageMs}
             />
           </View>
         </View>
 
-        <View style={styles.sheet}>
+        <Appear style={styles.sheet}>
           <View style={styles.titleBlock}>
             <View style={styles.titleRow}>
               <AppText variant="title" style={styles.title}>
@@ -307,31 +311,29 @@ export function RestaurantScreen() {
                   {summary ??
                     `${t('restaurant.todayHours')} · ${todayRanges.length > 0 ? todayRanges.join(', ') : t('common.closed')}`}
                 </AppText>
-                {hoursOpen ? (
-                  <View style={styles.hoursList}>
-                    {week.map((slot) => {
-                      const isToday = slot.weekDay === today;
-                      return (
-                        <View key={slot.weekDay} style={styles.hoursRow}>
-                          <AppText
-                            variant="caption"
-                            color={isToday ? tokens.color.brand.deep : tokens.color.text.muted}
-                            style={isToday ? styles.today : undefined}
-                          >
-                            {t(`weekdays.${slot.weekDay}`)}
-                          </AppText>
-                          <AppText
-                            variant="caption"
-                            color={isToday ? tokens.color.brand.deep : tokens.color.text.muted}
-                            style={isToday ? styles.today : undefined}
-                          >
-                            {slot.ranges.length > 0 ? slot.ranges.join(', ') : t('common.closed')}
-                          </AppText>
-                        </View>
-                      );
-                    })}
-                  </View>
-                ) : null}
+                <Expandable open={hoursOpen} gap={4} style={styles.hoursList}>
+                  {week.map((slot) => {
+                    const isToday = slot.weekDay === today;
+                    return (
+                      <View key={slot.weekDay} style={styles.hoursRow}>
+                        <AppText
+                          variant="caption"
+                          color={isToday ? tokens.color.brand.deep : tokens.color.text.muted}
+                          style={isToday ? styles.today : undefined}
+                        >
+                          {t(`weekdays.${slot.weekDay}`)}
+                        </AppText>
+                        <AppText
+                          variant="caption"
+                          color={isToday ? tokens.color.brand.deep : tokens.color.text.muted}
+                          style={isToday ? styles.today : undefined}
+                        >
+                          {slot.ranges.length > 0 ? slot.ranges.join(', ') : t('common.closed')}
+                        </AppText>
+                      </View>
+                    );
+                  })}
+                </Expandable>
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => setHoursOpen((open) => !open)}
@@ -346,7 +348,7 @@ export function RestaurantScreen() {
           ) : null}
 
           {promotions.data && promotions.data.length > 0 ? (
-            <View style={styles.card}>
+            <Appear style={styles.card}>
               <View style={styles.cardBody}>
                 <AppText variant="subtitle">{t('restaurant.promotions')}</AppText>
                 {promotions.data.map((item) => (
@@ -356,20 +358,20 @@ export function RestaurantScreen() {
                   </AppText>
                 ))}
               </View>
-            </View>
+            </Appear>
           ) : null}
           {events.data && events.data.length > 0 ? (
-            <View style={styles.card}>
+            <Appear style={styles.card}>
               <View style={styles.cardBody}>
                 <AppText variant="subtitle">{t('restaurant.events')}</AppText>
                 {events.data.map((event) => (
                   <AppText key={event.id}>{event.title}</AppText>
                 ))}
               </View>
-            </View>
+            </Appear>
           ) : null}
           {reviews.data && reviews.data.length > 0 ? (
-            <View style={styles.card}>
+            <Appear style={styles.card}>
               <View style={styles.cardBody}>
                 <AppText variant="subtitle">{t('restaurant.reviews')}</AppText>
                 {reviews.data.slice(0, 3).map((item) => (
@@ -381,7 +383,7 @@ export function RestaurantScreen() {
                   <ReportReview id={item.id}/></View>
                 ))}
               </View>
-            </View>
+            </Appear>
           ) : null}
 
           <View style={styles.menuHead}>
@@ -428,15 +430,15 @@ export function RestaurantScreen() {
           {restaurant.menus.every((menu) => menu.categories.every((category) => category.products.length === 0)) ? (
             <EmptyState title={t('empty.menu')} />
           ) : null}
-        </View>
+        </Appear>
       </ScrollView>
       {canOrder && cartCount > 0 ? (
-        <View style={[styles.cartBar, { paddingBottom: Math.max(insets.bottom, tokens.spacing.xl) }]}>
+        <Appear style={[styles.cartBar, { paddingBottom: Math.max(insets.bottom, tokens.spacing.xl) }]}>
           <Button
             label={t('orders.seeCart', { count: String(cartCount) })}
             onPress={() => router.push('/cart')}
           />
-        </View>
+        </Appear>
       ) : null}
     </View>
   );

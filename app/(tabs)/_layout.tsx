@@ -12,6 +12,8 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Changement d'onglet en fondu : un écran ne remplace jamais l'autre d'un coup.
+        animation: 'fade',
         tabBarActiveTintColor: tokens.color.brand.primary,
         tabBarInactiveTintColor: tokens.color.text.muted,
         tabBarStyle: {

@@ -14,6 +14,7 @@ import { ApiError } from '@/api/envelope';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
 import { EmptyState } from '@/components/empty-state';
+import { Appear, Expandable } from '@/components/motion';
 import { PageHero } from '@/components/page-hero';
 import { Screen } from '@/components/screen';
 import { SectionHeading } from '@/components/section-heading';
@@ -263,13 +264,13 @@ export function CartScreen() {
                 </Pressable>
               ))}
             </View>
-            {service === 'DELIVERY' ? (
+            <Expandable open={service === 'DELIVERY'} gap={tokens.spacing.md}>
               <TextField
                 label={t('orders.deliveryAddress')}
                 value={deliveryAddress}
                 onChangeText={setDeliveryAddress}
               />
-            ) : null}
+            </Expandable>
           </View>
           <View style={styles.card}>
             <SchedulePicker
@@ -284,7 +285,9 @@ export function CartScreen() {
               }}
             />
             {!scheduleValid && scheduledFor ? (
-              <AppText color={tokens.color.feedback.error}>{t('schedule.expired')}</AppText>
+              <Appear>
+                <AppText color={tokens.color.feedback.error}>{t('schedule.expired')}</AppText>
+              </Appear>
             ) : null}
           </View>
           <View style={styles.card}>
@@ -305,11 +308,11 @@ export function CartScreen() {
                 </Pressable>
               ))}
             </View>
-            {paymentMethod !== 'CASH' ? (
+            <Expandable open={paymentMethod !== 'CASH'} gap={tokens.spacing.md}>
               <AppText variant="caption" style={styles.notice}>
                 {t('payments.simulation')}
               </AppText>
-            ) : null}
+            </Expandable>
           </View>
           <View style={styles.card}>
             <SectionHeading title={t('checkout.preferences')} />
@@ -323,11 +326,11 @@ export function CartScreen() {
             />
           </View>
           {canUseCoupon || couponCode ? (
-            <View style={styles.card}>
+            <Appear style={styles.card}>
               <SectionHeading title={t('coupon.title')} />
               <AppText variant="muted">{t('coupon.hint')}</AppText>
               {couponCode ? (
-                <>
+                <Appear key="applied">
                   <AppText selectable color={tokens.color.brand.primary} style={styles.notice}>
                     {couponCode}
                   </AppText>
@@ -341,9 +344,9 @@ export function CartScreen() {
                       setFormError(undefined);
                     }}
                   />
-                </>
+                </Appear>
               ) : (
-                <>
+                <Appear key="draft">
                   <TextField
                     label={t('coupon.code')}
                     value={couponDraft}
@@ -363,14 +366,14 @@ export function CartScreen() {
                       setCoupon({ establishmentId: establishmentId ?? '', code: couponDraft.trim().toUpperCase() });
                     }}
                   />
-                </>
+                </Appear>
               )}
-            </View>
+            </Appear>
           ) : null}
           <View style={styles.card}>
             <SectionHeading title={t('checkout.summary')} />
             {quote.data?.couponCode && !quote.isError && !quote.isFetching ? (
-              <View style={styles.breakdown}>
+              <Appear style={styles.breakdown}>
                 <View style={styles.total}>
                   <AppText>{t('coupon.subtotal')}</AppText>
                   <AppText>{quote.data.subtotal.formatted}</AppText>
@@ -379,7 +382,7 @@ export function CartScreen() {
                   <AppText>{t('coupon.discount', { code: quote.data.couponCode })}</AppText>
                   <AppText color={tokens.color.brand.primary}>−{quote.data.discount.formatted}</AppText>
                 </View>
-              </View>
+              </Appear>
             ) : null}
             <View style={styles.totalHighlight}>
               <AppText variant="muted">{t('coupon.total')}</AppText>
@@ -388,7 +391,7 @@ export function CartScreen() {
               </AppText>
             </View>
             {quote.isError ? (
-              <>
+              <Appear>
                 <AppText color={tokens.color.feedback.error}>
                   {quote.error instanceof ApiError ? quote.error.problem.detail : t('errors.generic')}
                 </AppText>
@@ -399,10 +402,18 @@ export function CartScreen() {
                     void quote.refetch();
                   }}
                 />
-              </>
+              </Appear>
             ) : null}
-            {formError ? <AppText color={tokens.color.feedback.error}>{formError}</AppText> : null}
-            {!canOrder && restaurant.isSuccess ? <AppText variant="muted">{t('orders.notAvailable')}</AppText> : null}
+            {formError ? (
+              <Appear>
+                <AppText color={tokens.color.feedback.error}>{formError}</AppText>
+              </Appear>
+            ) : null}
+            {!canOrder && restaurant.isSuccess ? (
+              <Appear>
+                <AppText variant="muted">{t('orders.notAvailable')}</AppText>
+              </Appear>
+            ) : null}
           </View>
         </>
       ) : null}

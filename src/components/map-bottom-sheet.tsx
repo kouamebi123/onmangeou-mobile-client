@@ -3,6 +3,7 @@ import { PanResponder, Pressable, ScrollView, StyleSheet, View } from 'react-nat
 
 import type { RestaurantSummary } from '@/api/discovery';
 import { AppText } from '@/components/app-text';
+import { Appear } from '@/components/motion';
 import { RestaurantRow } from '@/components/restaurant-row';
 import { t } from '@/i18n';
 import { tokens } from '@/theme';
@@ -84,14 +85,14 @@ export function MapBottomSheet({
           contentContainerStyle={[styles.list, !expanded ? styles.listHorizontal : null]}
           keyboardShouldPersistTaps="handled"
         >
-          {restaurants.map((restaurant) => (
-            <View key={restaurant.id} style={expanded ? undefined : styles.peekCard}>
+          {restaurants.map((restaurant, index) => (
+            <Appear key={restaurant.id} index={index} style={expanded ? undefined : styles.peekCard}>
               <RestaurantRow
                 restaurant={restaurant}
                 selected={restaurant.id === selectedId}
                 onPress={() => onSelect(restaurant.id)}
               />
-            </View>
+            </Appear>
           ))}
         </ScrollView>
       )}

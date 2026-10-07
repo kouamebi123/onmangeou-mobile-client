@@ -8,6 +8,7 @@ import { Button } from '@/components/button';
 import { Price } from '@/components/price';
 import { t } from '@/i18n';
 import { tokens } from '@/theme';
+import { motion } from '@/theme/motion';
 
 interface DishCardProps {
   dish: MenuProduct;
@@ -18,7 +19,7 @@ export function DishCard({ dish, onAdd }: DishCardProps) {
   return (
     <View style={[styles.card, !dish.available ? styles.unavailable : null]}>
       {dish.imageUrl ? (
-        <Image source={{ uri: dish.imageUrl }} style={styles.image} contentFit="cover" />
+        <Image source={{ uri: dish.imageUrl }} style={styles.image} contentFit="cover" transition={motion.imageMs} />
       ) : (
         <View style={styles.imageFallback}>
           <Ionicons name="fast-food-outline" size={28} color={tokens.color.text.onBrand} />

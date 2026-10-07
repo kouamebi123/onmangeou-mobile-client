@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { HeroBlobs } from "@/components/page-hero";
 import { Logo } from "@/components/logo";
+import { Appear } from "@/components/motion";
 import { RestaurantCard } from "@/components/restaurant-card";
 import { Screen } from "@/components/screen";
 import { SearchBar } from "@/components/search-bar";
@@ -131,12 +132,16 @@ export function HomeScreen() {
         onPress={() => router.push("/explorer")}
         style={styles.mapPreview}
       >
-        <DiscoveryMap
+        <Appear
           key={`preview-${openNow ? "open" : "all"}-${submitted}`}
-          restaurants={items}
-          userLocation={coords}
-          interactive={false}
-        />
+          style={styles.mapFill}
+        >
+          <DiscoveryMap
+            restaurants={items}
+            userLocation={coords}
+            interactive={false}
+          />
+        </Appear>
       </Pressable>
 
       {restaurants.isLoading ? (
@@ -157,30 +162,34 @@ export function HomeScreen() {
 
       {featured.length > 0 ? (
         <>
-          <SectionHeading title={t("home.openNowTitle")} />
-          {featured.map((restaurant) => (
-            <RestaurantCard
-              key={`open-${restaurant.id}`}
-              restaurant={restaurant}
-              featured
-            />
+          <Appear>
+            <SectionHeading title={t("home.openNowTitle")} />
+          </Appear>
+          {featured.map((restaurant, index) => (
+            <Appear key={`open-${restaurant.id}`} index={index}>
+              <RestaurantCard restaurant={restaurant} featured />
+            </Appear>
           ))}
         </>
       ) : null}
 
       {remaining.length > 0 ? (
         <>
-          <SectionHeading
-            title={t(
-              openNow
-                ? "home.openNowTitle"
-                : featured.length > 0
-                  ? "home.otherTitle"
-                  : "home.allTitle",
-            )}
-          />
-          {remaining.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+          <Appear>
+            <SectionHeading
+              title={t(
+                openNow
+                  ? "home.openNowTitle"
+                  : featured.length > 0
+                    ? "home.otherTitle"
+                    : "home.allTitle",
+              )}
+            />
+          </Appear>
+          {remaining.map((restaurant, index) => (
+            <Appear key={restaurant.id} index={index}>
+              <RestaurantCard restaurant={restaurant} />
+            </Appear>
           ))}
         </>
       ) : null}
@@ -214,6 +223,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   mapLink: { fontFamily: tokens.typography.family.semibold },
+  mapFill: { flex: 1 },
   mapPreview: {
     height: 260,
     borderRadius: tokens.radius.card,

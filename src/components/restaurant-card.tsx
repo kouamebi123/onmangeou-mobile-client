@@ -12,6 +12,7 @@ import { useFavoriteToggle } from '@/features/favorites/use-favorite-toggle';
 import { restaurantCoverUrl } from '@/features/restaurant/cover';
 import { t } from '@/i18n';
 import { tokens } from '@/theme';
+import { motion } from '@/theme/motion';
 
 interface RestaurantCardProps {
   restaurant: RestaurantSummary;
@@ -34,6 +35,7 @@ export function RestaurantCard({ restaurant, featured = false }: RestaurantCardP
           source={{ uri: restaurantCoverUrl(restaurant.coverImageUrl, restaurant.id) }}
           style={styles.cover}
           contentFit="cover"
+          transition={motion.imageMs}
         />
         <View style={styles.status}>
           <AppText

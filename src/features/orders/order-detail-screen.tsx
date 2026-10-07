@@ -12,6 +12,7 @@ import { AppText } from "@/components/app-text";
 import { Button } from "@/components/button";
 import { ReviewForm } from "./review-form";
 import { ErrorState } from "@/components/error-state";
+import { Appear } from "@/components/motion";
 import { PageHero } from "@/components/page-hero";
 import { Screen } from "@/components/screen";
 import { Skeleton } from "@/components/skeleton";
@@ -156,113 +157,126 @@ export function OrderDetailScreen() {
         })}
       />
 
-      <OrderTracker
-        status={order.status}
-        delivery={order.service === "DELIVERY"}
-      />
+      {/* Blocs à position fixe : le rafraîchissement périodique ne les remonte pas. */}
+      <Appear>
+        <OrderTracker
+          status={order.status}
+          delivery={order.service === "DELIVERY"}
+        />
 
-      <View style={styles.card}>
-        <View style={styles.fact}>
-          <AppText variant="muted">{t("orders.pickup")}</AppText>
-          <AppText style={styles.factValue}>
-            {[
-              t(`orders.service.${order.service}`),
-              order.scheduledFor
-                ? dateFormat.format(new Date(order.scheduledFor))
-                : t("schedule.immediate"),
-            ].join(" · ")}
-          </AppText>
-        </View>
-        {order.paymentMethod ? (
+        <View style={styles.card}>
           <View style={styles.fact}>
-            <AppText variant="muted">{t("orders.payment")}</AppText>
+            <AppText variant="muted">{t("orders.pickup")}</AppText>
             <AppText style={styles.factValue}>
-              {t(`orders.paymentMethod.${order.paymentMethod}`)}
+              {[
+                t(`orders.service.${order.service}`),
+                order.scheduledFor
+                  ? dateFormat.format(new Date(order.scheduledFor))
+                  : t("schedule.immediate"),
+              ].join(" · ")}
             </AppText>
           </View>
-        ) : null}
-      </View>
-
-      <View style={styles.card}>
-        <AppText variant="muted">
-          {t("orders.items", { count: String(itemCount) })}
-        </AppText>
-        {order.items.map((item) => (
-          <View key={item.id} style={styles.line}>
-            <AppText style={styles.quantity}>{item.quantity} ×</AppText>
-            <AppText style={styles.lineBody}>{item.name}</AppText>
-            <AppText style={styles.amount}>{item.linePrice.formatted}</AppText>
-          </View>
-        ))}
-        {order.couponCode && order.discount && order.subtotal ? (
-          <>
-            <View style={[styles.line, styles.lineTop]}>
-              <AppText style={styles.lineBody}>{t("coupon.subtotal")}</AppText>
-              <AppText style={styles.amount}>{order.subtotal.formatted}</AppText>
-            </View>
-            <View style={styles.line}>
-              <AppText style={styles.lineBody}>
-                {t("coupon.discount", { code: order.couponCode })}
+          {order.paymentMethod ? (
+            <View style={styles.fact}>
+              <AppText variant="muted">{t("orders.payment")}</AppText>
+              <AppText style={styles.factValue}>
+                {t(`orders.paymentMethod.${order.paymentMethod}`)}
               </AppText>
-              <AppText style={styles.amount}>−{order.discount.formatted}</AppText>
             </View>
-          </>
-        ) : null}
-        <View style={[styles.line, styles.lineTop]}>
-          <AppText variant="subtitle" style={styles.lineBody}>
-            {t("orders.total")}
-          </AppText>
-          <AppText style={styles.totalAmount}>{order.total.formatted}</AppText>
+          ) : null}
         </View>
-      </View>
 
-      {order.notes ? (
         <View style={styles.card}>
-          <AppText variant="muted">{t("orders.notes")}</AppText>
-          <AppText>{order.notes}</AppText>
+          <AppText variant="muted">
+            {t("orders.items", { count: String(itemCount) })}
+          </AppText>
+          {order.items.map((item) => (
+            <View key={item.id} style={styles.line}>
+              <AppText style={styles.quantity}>{item.quantity} ×</AppText>
+              <AppText style={styles.lineBody}>{item.name}</AppText>
+              <AppText style={styles.amount}>{item.linePrice.formatted}</AppText>
+            </View>
+          ))}
+          {order.couponCode && order.discount && order.subtotal ? (
+            <>
+              <View style={[styles.line, styles.lineTop]}>
+                <AppText style={styles.lineBody}>{t("coupon.subtotal")}</AppText>
+                <AppText style={styles.amount}>{order.subtotal.formatted}</AppText>
+              </View>
+              <View style={styles.line}>
+                <AppText style={styles.lineBody}>
+                  {t("coupon.discount", { code: order.couponCode })}
+                </AppText>
+                <AppText style={styles.amount}>−{order.discount.formatted}</AppText>
+              </View>
+            </>
+          ) : null}
+          <View style={[styles.line, styles.lineTop]}>
+            <AppText variant="subtitle" style={styles.lineBody}>
+              {t("orders.total")}
+            </AppText>
+            <AppText style={styles.totalAmount}>{order.total.formatted}</AppText>
+          </View>
         </View>
-      ) : null}
+
+        {order.notes ? (
+          <View style={styles.card}>
+            <AppText variant="muted">{t("orders.notes")}</AppText>
+            <AppText>{order.notes}</AppText>
+          </View>
+        ) : null}
+      </Appear>
 
       {actionError ? (
-        <AppText color={tokens.color.feedback.error}>{actionError}</AppText>
+        <Appear>
+          <AppText color={tokens.color.feedback.error}>{actionError}</AppText>
+        </Appear>
       ) : null}
 
       {order.status === "PENDING_PAYMENT" ? (
-        <Button
-          label={t("payments.simulate")}
-          loading={pay.isPending}
-          onPress={() => pay.mutate()}
-        />
+        <Appear>
+          <Button
+            label={t("payments.simulate")}
+            loading={pay.isPending}
+            onPress={() => pay.mutate()}
+          />
+        </Appear>
       ) : null}
       {order.status === "PENDING_RESTAURANT" ||
       order.status === "PENDING_PAYMENT" ? (
-        <Button
-          label={t("orders.cancel")}
-          variant="outline"
-          loading={cancel.isPending}
-          onPress={() => cancel.mutate()}
-        />
+        <Appear>
+          <Button
+            label={t("orders.cancel")}
+            variant="outline"
+            loading={cancel.isPending}
+            onPress={() => cancel.mutate()}
+          />
+        </Appear>
       ) : null}
       {order.status === "READY" && order.service !== "DELIVERY" ? (
-        <Button
-          label={t("orders.confirmPickup")}
-          loading={pickup.isPending}
-          onPress={() => pickup.mutate()}
-        />
+        <Appear>
+          <Button
+            label={t("orders.confirmPickup")}
+            loading={pickup.isPending}
+            onPress={() => pickup.mutate()}
+          />
+        </Appear>
       ) : null}
       {order.status === "COMPLETED" ? (
-        <ReviewForm
-          orderId={order.id}
-          establishmentId={order.establishmentId}
-          delivery={order.service === "DELIVERY"}
-        />
+        <Appear>
+          <ReviewForm
+            orderId={order.id}
+            establishmentId={order.establishmentId}
+            delivery={order.service === "DELIVERY"}
+          />
+        </Appear>
       ) : null}
       {order.status === "COMPLETED" ||
       order.status === "REJECTED" ||
       order.status === "CANCELLED" ? (
-        <View style={styles.card}>
+        <Appear style={styles.card}>
           {reorder.isSuccess && reorder.data.missing.length > 0 ? (
-            <>
+            <Appear key="partial" style={styles.cardStack}>
               <AppText variant="muted" accessibilityLiveRegion="polite">
                 {t("orders.reorderPartial", {
                   names: reorder.data.missing.join(", "),
@@ -272,9 +286,9 @@ export function OrderDetailScreen() {
                 label={t("orders.seeCartShort")}
                 onPress={() => router.push("/cart")}
               />
-            </>
+            </Appear>
           ) : (
-            <>
+            <Appear key="hint" style={styles.cardStack}>
               <AppText variant="muted">{t("orders.reorderHint")}</AppText>
               <Button
                 label={t("orders.reorder")}
@@ -282,25 +296,29 @@ export function OrderDetailScreen() {
                 loading={reorder.isPending}
                 onPress={() => reorder.mutate()}
               />
-            </>
+            </Appear>
           )}
           {reorder.isError ? (
-            <AppText
-              accessibilityLiveRegion="polite"
-              color={tokens.color.feedback.error}
-            >
-              {reorder.error instanceof ApiError
-                ? reorder.error.problem.detail
-                : reorder.error.message}
-            </AppText>
+            <Appear>
+              <AppText
+                accessibilityLiveRegion="polite"
+                color={tokens.color.feedback.error}
+              >
+                {reorder.error instanceof ApiError
+                  ? reorder.error.problem.detail
+                  : reorder.error.message}
+              </AppText>
+            </Appear>
           ) : null}
-        </View>
+        </Appear>
       ) : null}
-      <Button
-        label={t("restaurant.back")}
-        variant="ghost"
-        onPress={() => router.back()}
-      />
+      <Appear>
+        <Button
+          label={t("restaurant.back")}
+          variant="ghost"
+          onPress={() => router.back()}
+        />
+      </Appear>
     </Screen>
   );
 }
@@ -314,6 +332,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.color.border.default,
   },
+  cardStack: { gap: tokens.spacing.sm },
   fact: {
     flexDirection: "row",
     alignItems: "baseline",

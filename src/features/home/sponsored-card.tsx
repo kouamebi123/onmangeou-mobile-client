@@ -5,6 +5,7 @@ import { View } from "react-native";
 import { apiRequest } from "@/api/client";
 import { AppText } from "@/components/app-text";
 import { Button } from "@/components/button";
+import { Expandable } from "@/components/motion";
 import { t } from "@/i18n";
 import { tokens } from "@/theme";
 interface Sponsored {
@@ -32,27 +33,31 @@ export function SponsoredCard() {
       auth: false,
       body: { event },
     });
-  if (!ad.data) return null;
+  // La carte arrive au-dessus de l'accueil : elle s'ouvre en poussant le reste en douceur.
   return (
-    <View
-      style={{ gap: tokens.spacing.xs }}
-      onLayout={() => {
-        if (!seen.current)
-          seen.current = record("IMPRESSION").catch(() => undefined);
-      }}
-    >
-      <AppText variant="caption">{t("ads.sponsored")}</AppText>
-      <AppText variant="subtitle">{ad.data.title}</AppText>
-      <Button
-        variant="outline"
-        label={ad.data.name}
-        onPress={() => {
-          void (seen.current ?? record("IMPRESSION"))
-            .then(() => record("CLICK"))
-            .catch(() => undefined);
-          router.push(`/restaurants/${encodeURIComponent(ad.data!.slug)}`);
-        }}
-      />
-    </View>
+    <Expandable open={Boolean(ad.data)} gap={tokens.spacing.md}>
+      {ad.data ? (
+        <View
+          style={{ gap: tokens.spacing.xs }}
+          onLayout={() => {
+            if (!seen.current)
+              seen.current = record("IMPRESSION").catch(() => undefined);
+          }}
+        >
+          <AppText variant="caption">{t("ads.sponsored")}</AppText>
+          <AppText variant="subtitle">{ad.data.title}</AppText>
+          <Button
+            variant="outline"
+            label={ad.data.name}
+            onPress={() => {
+              void (seen.current ?? record("IMPRESSION"))
+                .then(() => record("CLICK"))
+                .catch(() => undefined);
+              router.push(`/restaurants/${encodeURIComponent(ad.data!.slug)}`);
+            }}
+          />
+        </View>
+      ) : null}
+    </Expandable>
   );
 }

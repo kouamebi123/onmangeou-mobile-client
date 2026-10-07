@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { fetchFavorites } from '@/api/discovery';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
+import { Appear } from '@/components/motion';
 import { PageHero } from '@/components/page-hero';
 import { RestaurantCard } from '@/components/restaurant-card';
 import { Screen } from '@/components/screen';
@@ -71,7 +72,7 @@ export function FavoritesScreen() {
       ) : null}
       {accessToken && favorites.isError ? <ErrorState onRetry={() => void favorites.refetch()} /> : null}
       {accessToken && favorites.data && favorites.data.length === 0 ? (
-        <View style={styles.panel}>
+        <Appear style={styles.panel}>
           <View style={styles.mark}>
             <Ionicons name="heart-dislike-outline" size={32} color={tokens.color.text.onBrand} />
           </View>
@@ -82,10 +83,12 @@ export function FavoritesScreen() {
             {t('empty.favoritesDetail')}
           </AppText>
           <Button label={t('orders.exploreCta')} onPress={() => router.push('/explorer')} />
-        </View>
+        </Appear>
       ) : null}
-      {favorites.data?.map((restaurant) => (
-        <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+      {favorites.data?.map((restaurant, index) => (
+        <Appear key={restaurant.id} index={index}>
+          <RestaurantCard restaurant={restaurant} />
+        </Appear>
       ))}
     </Screen>
   );

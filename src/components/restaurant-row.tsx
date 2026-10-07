@@ -8,6 +8,7 @@ import { OpeningStatusText } from '@/components/opening-status-text';
 import { formatDistance } from '@/features/explore/format';
 import { restaurantCoverUrl } from '@/features/restaurant/cover';
 import { tokens } from '@/theme';
+import { motion } from '@/theme/motion';
 
 export function RestaurantRow({
   restaurant,
@@ -36,6 +37,7 @@ export function RestaurantRow({
         source={{ uri: restaurantCoverUrl(restaurant.coverImageUrl, restaurant.id) }}
         style={styles.mark}
         contentFit="cover"
+        transition={motion.imageMs}
       />
       <View style={styles.body}>
         <AppText variant="subtitle">{restaurant.name}</AppText>

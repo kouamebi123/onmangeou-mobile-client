@@ -13,7 +13,9 @@ import { createRequestId } from "@/api/device";
 import { ApiError } from "@/api/envelope";
 import { AppText } from "@/components/app-text";
 import { Button } from "@/components/button";
+import { Appear } from "@/components/motion";
 import { tokens } from "@/theme";
+import { motion } from "@/theme/motion";
 import { t } from "@/i18n";
 
 export function ReviewPhotos({
@@ -92,7 +94,7 @@ export function ReviewPhotos({
         }}
       >
         {photos.map((id) => (
-          <View key={id} style={{ gap: tokens.spacing.xs }}>
+          <Appear key={id} style={{ gap: tokens.spacing.xs }}>
             <Image
               source={{
                 uri: `${getApiBaseUrl()}/reviews/${reviewId}/photos/${id}/file`,
@@ -101,6 +103,7 @@ export function ReviewPhotos({
               style={{ width: 96, height: 96, borderRadius: tokens.radius.md }}
               contentFit="cover"
               cachePolicy="none"
+              transition={motion.imageMs}
             />
             {editable ? (
               <Button
@@ -110,7 +113,7 @@ export function ReviewPhotos({
                 onPress={() => remove.mutate(id)}
               />
             ) : null}
-          </View>
+          </Appear>
         ))}
       </View>
       {editable && photos.length < 3 ? (
@@ -123,7 +126,7 @@ export function ReviewPhotos({
             onPress={() => void choose()}
           />
           {selection ? (
-            <>
+            <Appear style={{ gap: tokens.spacing.sm }}>
               <Image
                 source={{ uri: selection.uri }}
                 style={{
@@ -131,6 +134,7 @@ export function ReviewPhotos({
                   height: 120,
                   borderRadius: tokens.radius.md,
                 }}
+                transition={motion.imageMs}
               />
               <Button
                 label={t("reviewPhotos.send")}
@@ -144,17 +148,19 @@ export function ReviewPhotos({
                 disabled={busy}
                 onPress={() => setSelection(undefined)}
               />
-            </>
+            </Appear>
           ) : null}
         </>
       ) : null}
       {pickerError || error ? (
-        <AppText selectable color={tokens.color.feedback.error}>
-          {pickerError ||
-            (error instanceof ApiError
-              ? error.problem.detail
-              : t("errors.generic"))}
-        </AppText>
+        <Appear>
+          <AppText selectable color={tokens.color.feedback.error}>
+            {pickerError ||
+              (error instanceof ApiError
+                ? error.problem.detail
+                : t("errors.generic"))}
+          </AppText>
+        </Appear>
       ) : null}
     </View>
   );

@@ -18,6 +18,7 @@ import {
 } from '@/api/commerce';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
+import { Appear, Expandable } from '@/components/motion';
 import { HintRow, PageHero } from '@/components/page-hero';
 import { Screen } from '@/components/screen';
 import { Signature } from '@/components/signature';
@@ -105,13 +106,15 @@ export function ProfileScreen() {
         ) : null}
       </PageHero>
       {actionError ? (
-        <AppText accessibilityRole="alert" color={tokens.color.feedback.error}>
-          {actionError instanceof ApiError ? actionError.problem.detail : t('errors.generic')}
-        </AppText>
+        <Appear>
+          <AppText accessibilityRole="alert" color={tokens.color.feedback.error}>
+            {actionError instanceof ApiError ? actionError.problem.detail : t('errors.generic')}
+          </AppText>
+        </Appear>
       ) : null}
 
       {!accessToken ? (
-        <>
+        <Appear key="guest">
           <View style={styles.panel}>
             <View style={styles.mark}>
               <Ionicons name="sparkles-outline" size={32} color={tokens.color.text.onBrand} />
@@ -127,26 +130,26 @@ export function ProfileScreen() {
           <HintRow icon="heart-outline" title={t('profile.benefitFavorites')} detail={t('profile.benefitFavoritesDetail')} />
           <HintRow icon="map-outline" title={t('profile.benefitPlaces')} detail={t('profile.benefitPlacesDetail')} />
           <HintRow icon="receipt-outline" title={t('profile.benefitSoon')} detail={t('profile.benefitSoonDetail')} />
-        </>
+        </Appear>
       ) : (
-        <>
+        <Appear key="member">
           <View style={styles.card}>
             <InfoLine icon="call-outline" label={t('profile.phone')} value={me.data?.phoneE164 ?? '—'} />
             <View style={styles.divider} />
             <InfoLine icon="person-outline" label={t('profile.name')} value={me.data?.fullName ?? '—'} />
             {me.data?.defaultCity ? (
-              <>
+              <Appear style={styles.cardStack}>
                 <View style={styles.divider} />
                 <InfoLine icon="location-outline" label={t('common.city')} value={me.data.defaultCity} />
-              </>
+              </Appear>
             ) : null}
           </View>
 
           {inbox.data && inbox.data.length > 0 ? (
-            <View style={styles.card}>
+            <Appear style={styles.card}>
               <AppText variant="subtitle">{t('profile.notifications')}</AppText>
               {inbox.data.slice(0, 4).map((item) => (
-                <View key={item.id} style={styles.notice}>
+                <Appear key={item.id} style={styles.notice}>
                   <View style={[styles.noticeDot, item.read_at ? styles.noticeDotRead : null]} />
                   <View style={styles.infoBody}>
                     {/* The title is often just the app name: the message itself is in the body. */}
@@ -155,19 +158,20 @@ export function ProfileScreen() {
                       <AppText variant="caption">{item.title}</AppText>
                     ) : null}
                   </View>
-                </View>
+                </Appear>
               ))}
               <Button label={t('profile.markAllRead')} variant="ghost" disabled={action.isPending} onPress={() => action.mutate(async () => {
                 await markNotificationsRead();
                 await queryClient.invalidateQueries({ queryKey: ['notifications'] });
               })} />
-            </View>
+            </Appear>
           ) : null}
+          {/* Clés stables (identifiant de réservation) : le rafraîchissement périodique ne rejoue pas l'apparition. */}
           {reservations.data && reservations.data.length > 0 ? (
-            <View style={styles.card}>
+            <Appear style={styles.card}>
               <AppText variant="subtitle">{t('profile.reservations')}</AppText>
               {reservations.data.slice(0, 4).map((item, index) => (
-                <View key={item.id} style={[styles.reservation, index > 0 ? styles.reservationNext : null]}>
+                <Appear key={item.id} style={[styles.reservation, index > 0 ? styles.reservationNext : null]}>
                   <View style={styles.infoBody}>
                     <StatusChip label={t(`reservation.${item.status}`)} tone={reservationStatusTone(item.status)} />
                     <AppText style={styles.reservationName}>{item.establishment_name}</AppText>
@@ -193,9 +197,9 @@ export function ProfileScreen() {
                       onPress={() => cancelResa.mutate(item.id)}
                     />
                   ) : null}
-                </View>
+                </Appear>
               ))}
-            </View>
+            </Appear>
           ) : null}
 
           <View style={styles.card}>
@@ -213,7 +217,11 @@ export function ProfileScreen() {
               disabled={ticketBody.trim().length < 4}
               onPress={() => support.mutate()}
             />
-            {support.isSuccess ? <AppText color={tokens.color.brand.primary}>{t('profile.helpSent')}</AppText> : null}
+            {support.isSuccess ? (
+              <Appear>
+                <AppText color={tokens.color.brand.primary}>{t('profile.helpSent')}</AppText>
+              </Appear>
+            ) : null}
           </View>
 
           <Pressable
@@ -248,7 +256,7 @@ export function ProfileScreen() {
           <View style={styles.card}>
             <AppText variant="subtitle">{t('profile.addresses')}</AppText>
             {addresses.data?.map((item) => (
-              <View key={item.id} style={styles.info}>
+              <Appear key={item.id} style={styles.info}>
                 <View style={styles.infoBody}>
                   <AppText>
                     {item.label} · {item.line}
@@ -258,7 +266,7 @@ export function ProfileScreen() {
                     await queryClient.invalidateQueries({ queryKey: ['me', 'addresses'] });
                   })} />
                 </View>
-              </View>
+              </Appear>
             ))}
             <TextField label={t('profile.addressLabel')} value={addressLabel} onChangeText={setAddressLabel} />
             <TextField label={t('profile.addressLine')} value={addressLine} onChangeText={setAddressLine} />
@@ -321,7 +329,7 @@ export function ProfileScreen() {
             accessibilityState={{ expanded: deleteOpen }}
             onPress={() => setDeleteOpen((open) => !open)}
           />
-          {deleteOpen ? (
+          <Expandable open={deleteOpen} gap={tokens.spacing.md}>
             <View style={styles.card}>
               <AppText variant="muted">{t('profile.deleteWarning')}</AppText>
               <TextField label={t('profile.deleteReason')} value={deleteReason} onChangeText={setDeleteReason} />
@@ -337,8 +345,8 @@ export function ProfileScreen() {
                 }
               />
             </View>
-          ) : null}
-        </>
+          </Expandable>
+        </Appear>
       )}
       <Signature />
     </Screen>
@@ -404,6 +412,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
   },
+  cardStack: { gap: tokens.spacing.sm },
   info: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.sm },
   infoBody: { flex: 1, gap: 2 },
   divider: { height: 1, backgroundColor: tokens.color.border.default },

@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { fetchMyOrders, type OrderView } from '@/api/orders';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
+import { Appear } from '@/components/motion';
 import { ErrorState } from '@/components/error-state';
 import { PageHero } from '@/components/page-hero';
 import { Price } from '@/components/price';
@@ -67,7 +68,7 @@ export function OrdersScreen() {
       {accessToken && orders.isLoading ? <Skeleton height={120} /> : null}
       {accessToken && orders.isError ? <ErrorState onRetry={() => void orders.refetch()} /> : null}
       {accessToken && orders.data && orders.data.length === 0 ? (
-        <View style={styles.panel}>
+        <Appear style={styles.panel}>
           <View style={styles.mark}>
             <Ionicons name="bag-handle-outline" size={32} color={tokens.color.text.onBrand} />
           </View>
@@ -78,11 +79,14 @@ export function OrdersScreen() {
             {t('orders.emptyDetail')}
           </AppText>
           <Button label={t('orders.exploreCta')} onPress={() => router.push('/explorer')} />
-        </View>
+        </Appear>
       ) : null}
 
-      {accessToken && orders.data?.map((order) => (
-        <OrderRow key={order.id} order={order} onPress={() => router.push(`/order/${order.id}`)} />
+      {/* Clé stable (identifiant de commande) : le rafraîchissement périodique ne rejoue pas l'apparition. */}
+      {accessToken && orders.data?.map((order, index) => (
+        <Appear key={order.id} index={index}>
+          <OrderRow order={order} onPress={() => router.push(`/order/${order.id}`)} />
+        </Appear>
       ))}
     </Screen>
   );

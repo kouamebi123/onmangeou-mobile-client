@@ -10,6 +10,7 @@ import { ApiError } from '@/api/envelope';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
 import { Logo } from '@/components/logo';
+import { Appear } from '@/components/motion';
 import { HeroBlobs } from '@/components/page-hero';
 import { PhoneField } from '@/components/phone-field';
 import { Screen } from '@/components/screen';
@@ -70,10 +71,14 @@ export function OtpScreen() {
       </View>
 
       <View style={styles.card}>
-        {formError ? <AppText color={tokens.color.feedback.error}>{formError}</AppText> : null}
+        {formError ? (
+          <Appear>
+            <AppText color={tokens.color.feedback.error}>{formError}</AppText>
+          </Appear>
+        ) : null}
 
         {step === 'phone' ? (
-          <>
+          <Appear key="phone">
             <Controller
               control={phoneForm.control}
               name="phone"
@@ -100,9 +105,9 @@ export function OtpScreen() {
                 }
               })}
             />
-          </>
+          </Appear>
         ) : (
-          <>
+          <Appear key="code">
             {devCode ? (
               <View style={styles.devCode}>
                 <AppText variant="caption" color={tokens.color.brand.primary}>
@@ -154,7 +159,7 @@ export function OtpScreen() {
                 setFormError(undefined);
               }}
             />
-          </>
+          </Appear>
         )}
       </View>
       <Signature />

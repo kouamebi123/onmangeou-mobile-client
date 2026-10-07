@@ -9,6 +9,7 @@ import { createIdempotencyKey } from '@/api/device';
 import { ApiError } from '@/api/envelope';
 import { AppText } from '@/components/app-text';
 import { Button } from '@/components/button';
+import { Expandable } from '@/components/motion';
 import { TextField } from '@/components/text-field';
 import { useAuthStore } from '@/store/auth-store';
 import { t } from '@/i18n';
@@ -121,14 +122,19 @@ export function ReservationForm({
         <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={tokens.color.text.muted} />
       </Pressable>
 
-      {expanded ? (
-        <View style={styles.body}>
-          <AppText variant="caption">{t('reservation.timezone', { timezone })}</AppText>
+      {/* Les blocs conditionnels du formulaire sont eux-mêmes repliables : ils poussent la suite sans à-coup. */}
+      <Expandable open={expanded} gap={tokens.spacing.sm} style={styles.body}>
+        <AppText variant="caption">{t('reservation.timezone', { timezone })}</AppText>
 
-          {schedule.isLoading ? <AppText variant="muted">{t('reservation.loadingSlots')}</AppText> : null}
-          {!schedule.isLoading && days.length === 0 ? <AppText variant="muted">{t('reservation.noSlots')}</AppText> : null}
+        <Expandable open={schedule.isLoading} gap={tokens.spacing.sm}>
+          <AppText variant="muted">{t('reservation.loadingSlots')}</AppText>
+        </Expandable>
+        <Expandable open={!schedule.isLoading && days.length === 0} gap={tokens.spacing.sm}>
+          <AppText variant="muted">{t('reservation.noSlots')}</AppText>
+        </Expandable>
 
-          {days.length > 0 && activeDay ? (
+        <Expandable open={days.length > 0 && activeDay !== undefined} gap={tokens.spacing.sm} style={styles.body}>
+          {activeDay ? (
             <>
               <AppText>{t('reservation.date')}</AppText>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -196,63 +202,63 @@ export function ReservationForm({
               </ScrollView>
             </>
           ) : null}
+        </Expandable>
 
-          <View style={styles.party}>
-            <AppText style={styles.partyLabel}>{t('reservation.party', { count: String(partySize) })}</AppText>
-            <Button
-              label="−"
-              variant="outline"
-              accessibilityLabel={t('reservation.less')}
-              disabled={partySize <= 1 || reserve.isPending}
-              onPress={() => {
-                setPartySize(partySize - 1);
-                reset();
-              }}
-            />
-            <Button
-              label="+"
-              variant="outline"
-              accessibilityLabel={t('reservation.more')}
-              disabled={partySize >= 20 || reserve.isPending}
-              onPress={() => {
-                setPartySize(partySize + 1);
-                reset();
-              }}
-            />
-          </View>
-          <TextField
-            label={t('reservation.notes')}
-            value={notes}
-            maxLength={500}
-            editable={!reserve.isPending}
-            onChangeText={(value) => {
-              setNotes(value);
+        <View style={styles.party}>
+          <AppText style={styles.partyLabel}>{t('reservation.party', { count: String(partySize) })}</AppText>
+          <Button
+            label="−"
+            variant="outline"
+            accessibilityLabel={t('reservation.less')}
+            disabled={partySize <= 1 || reserve.isPending}
+            onPress={() => {
+              setPartySize(partySize - 1);
               reset();
             }}
           />
-          <AppText variant="caption">{t('reservation.pendingNotice')}</AppText>
-          {token ? (
-            <Button
-              label={t('reservation.send')}
-              loading={reserve.isPending}
-              disabled={!valid || reserve.isSuccess}
-              onPress={() => reserve.mutate()}
-            />
-          ) : (
-            <Button label={t('reservation.login')} onPress={() => router.push('/auth')} />
-          )}
-          {reserve.isSuccess ? (
-            <AppText accessibilityLiveRegion="polite" color={tokens.color.feedback.success}>
-              {t('reservation.success')}
-            </AppText>
-          ) : null}
-          {error ? (
-            <AppText accessibilityLiveRegion="polite" color={tokens.color.feedback.error}>
-              {error}
-            </AppText>
-          ) : null}
+          <Button
+            label="+"
+            variant="outline"
+            accessibilityLabel={t('reservation.more')}
+            disabled={partySize >= 20 || reserve.isPending}
+            onPress={() => {
+              setPartySize(partySize + 1);
+              reset();
+            }}
+          />
         </View>
-      ) : null}
+        <TextField
+          label={t('reservation.notes')}
+          value={notes}
+          maxLength={500}
+          editable={!reserve.isPending}
+          onChangeText={(value) => {
+            setNotes(value);
+            reset();
+          }}
+        />
+        <AppText variant="caption">{t('reservation.pendingNotice')}</AppText>
+        {token ? (
+          <Button
+            label={t('reservation.send')}
+            loading={reserve.isPending}
+            disabled={!valid || reserve.isSuccess}
+            onPress={() => reserve.mutate()}
+          />
+        ) : (
+          <Button label={t('reservation.login')} onPress={() => router.push('/auth')} />
+        )}
+        <Expandable open={reserve.isSuccess} gap={tokens.spacing.sm}>
+          <AppText accessibilityLiveRegion="polite" color={tokens.color.feedback.success}>
+            {t('reservation.success')}
+          </AppText>
+        </Expandable>
+        <Expandable open={Boolean(error)} gap={tokens.spacing.sm}>
+          <AppText accessibilityLiveRegion="polite" color={tokens.color.feedback.error}>
+            {error}
+          </AppText>
+        </Expandable>
+      </Expandable>
     </View>
   );
 }

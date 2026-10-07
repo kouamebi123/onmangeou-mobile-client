@@ -7,6 +7,7 @@ import { createIdempotencyKey } from "@/api/device";
 import { ApiError } from "@/api/envelope";
 import { AppText } from "@/components/app-text";
 import { Button } from "@/components/button";
+import { Appear } from "@/components/motion";
 import { TextField } from "@/components/text-field";
 import { t } from "@/i18n";
 import { tokens } from "@/theme";
@@ -30,13 +31,13 @@ export function ReviewForm({
   if (review.isPending) return <AppText>{t("common.loading")}</AppText>;
   if (review.isError)
     return (
-      <View>
+      <Appear style={{ gap: 0 }}>
         <AppText>{t("review.loadError")}</AppText>
         <Button
           label={t("review.retry")}
           onPress={() => void review.refetch()}
         />
-      </View>
+      </Appear>
     );
   return (
     <ReviewEditor
@@ -88,7 +89,7 @@ function ReviewEditor({
     },
   });
   return (
-    <View style={{ gap: tokens.spacing.sm }}>
+    <Appear style={{ gap: tokens.spacing.sm }}>
       <AppText variant="subtitle">
         {existing ? t("review.edit") : t("review.title")}
       </AppText>
@@ -175,14 +176,20 @@ function ReviewEditor({
         loading={save.isPending}
         onPress={() => save.mutate()}
       />
-      {save.isSuccess ? <AppText>{t("review.success")}</AppText> : null}
-      {save.isError ? (
-        <AppText color={tokens.color.feedback.error}>
-          {save.error instanceof ApiError
-            ? save.error.problem.detail
-            : t("errors.generic")}
-        </AppText>
+      {save.isSuccess ? (
+        <Appear>
+          <AppText>{t("review.success")}</AppText>
+        </Appear>
       ) : null}
-    </View>
+      {save.isError ? (
+        <Appear>
+          <AppText color={tokens.color.feedback.error}>
+            {save.error instanceof ApiError
+              ? save.error.problem.detail
+              : t("errors.generic")}
+          </AppText>
+        </Appear>
+      ) : null}
+    </Appear>
   );
 }

@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/empty-state';
 import { ErrorState } from '@/components/error-state';
 import { ExploreSearch, type ExploreFilters } from '@/components/explore-search';
 import { MapBottomSheet } from '@/components/map-bottom-sheet';
+import { Appear } from '@/components/motion';
 import { OfflineBanner } from '@/components/offline-banner';
 import { RestaurantCard } from '@/components/restaurant-card';
 import { Screen } from '@/components/screen';
@@ -210,8 +211,10 @@ export function ExploreScreen() {
         {restaurants.data && items.length === 0 ? (
           <EmptyState title={t('empty.restaurants')} detail={t('empty.restaurantsDetail')} />
         ) : null}
-        {items.map((restaurant) => (
-          <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+        {items.map((restaurant, index) => (
+          <Appear key={restaurant.id} index={index}>
+            <RestaurantCard restaurant={restaurant} />
+          </Appear>
         ))}
       </Screen>
     );
@@ -221,31 +224,35 @@ export function ExploreScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <OfflineBanner />
       <View style={styles.mapStage}>
-        <DiscoveryMap
-          restaurants={items}
-          selectedId={selectedId}
-          userLocation={coords}
-          recenterKey={recenterKey}
-          onSelect={setSelectedId}
-          onOpenRestaurant={(slug) => router.push(`/restaurant/${slug}`)}
-          onRegionSettled={setPendingRegion}
-        />
+        <Appear style={styles.mapFill}>
+          <DiscoveryMap
+            restaurants={items}
+            selectedId={selectedId}
+            userLocation={coords}
+            recenterKey={recenterKey}
+            onSelect={setSelectedId}
+            onOpenRestaurant={(slug) => router.push(`/restaurant/${slug}`)}
+            onRegionSettled={setPendingRegion}
+          />
+        </Appear>
         <View style={styles.overlay}>
           {search}
           <View style={styles.modeRow}>
             {pendingRegion ? (
-              <Pressable
-                accessibilityRole="button"
-                disabled={restaurants.isFetching}
-                onPress={() => {
-                  setAppliedRegion(pendingRegion);
-                  setPendingRegion(null);
-                  setSelectedId(null);
-                }}
-                style={styles.modeChip}
-              >
-                <AppText variant="caption">{t('map.searchArea')}</AppText>
-              </Pressable>
+              <Appear style={styles.chipSlot}>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={restaurants.isFetching}
+                  onPress={() => {
+                    setAppliedRegion(pendingRegion);
+                    setPendingRegion(null);
+                    setSelectedId(null);
+                  }}
+                  style={styles.modeChip}
+                >
+                  <AppText variant="caption">{t('map.searchArea')}</AppText>
+                </Pressable>
+              </Appear>
             ) : null}
             <Pressable
               accessibilityRole="button"
@@ -301,14 +308,18 @@ export function ExploreScreen() {
             </Pressable>
           </View>
           {status === 'denied' ? (
-            <AppText variant="caption" color={tokens.color.brand.deep} style={styles.notice}>
-              {t('map.locateDenied')}
-            </AppText>
+            <Appear>
+              <AppText variant="caption" color={tokens.color.brand.deep} style={styles.notice}>
+                {t('map.locateDenied')}
+              </AppText>
+            </Appear>
           ) : null}
           {outOfZone ? (
-            <AppText variant="caption" color={tokens.color.brand.deep} style={styles.notice}>
-              {t('map.outOfZone')}
-            </AppText>
+            <Appear>
+              <AppText variant="caption" color={tokens.color.brand.deep} style={styles.notice}>
+                {t('map.outOfZone')}
+              </AppText>
+            </Appear>
           ) : null}
         </View>
         {restaurants.isError ? (
@@ -316,7 +327,7 @@ export function ExploreScreen() {
             <ErrorState onRetry={() => void restaurants.refetch()} />
           </View>
         ) : null}
-        <View style={styles.dock}>
+        <Appear style={styles.dock}>
           <MapBottomSheet
             restaurants={items}
             selectedId={selectedId}
@@ -324,7 +335,7 @@ export function ExploreScreen() {
             onToggle={() => setSheetOpen((value) => !value)}
             onSelect={setSelectedId}
           />
-        </View>
+        </Appear>
       </View>
     </SafeAreaView>
   );
@@ -333,6 +344,8 @@ export function ExploreScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, height: '100%', backgroundColor: tokens.color.brand.cream },
   mapStage: { flex: 1, position: 'relative', width: '100%' },
+  mapFill: { flex: 1 },
+  chipSlot: { gap: 0 },
   overlay: {
     position: 'absolute',
     top: 0,

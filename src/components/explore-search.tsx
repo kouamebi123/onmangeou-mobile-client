@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { fetchSearchSuggestions, type SearchSuggestion } from '@/api/discovery';
 import { AppText } from '@/components/app-text';
+import { Appear } from '@/components/motion';
 import { SearchBar } from '@/components/search-bar';
 import { t } from '@/i18n';
 import { tokens } from '@/theme';
@@ -49,7 +50,7 @@ export function ExploreSearch({
     <View style={styles.wrap}>
       <SearchBar value={value} onChangeText={onChangeText} onSubmit={onSubmit} />
       {items.length > 0 ? (
-        <View style={styles.suggest}>
+        <Appear style={styles.suggest}>
           {items.map((item) => (
             <Pressable
               key={`${item.type}-${item.slug ?? item.label}`}
@@ -63,7 +64,7 @@ export function ExploreSearch({
               <AppText variant="subtitle">{item.label}</AppText>
             </Pressable>
           ))}
-        </View>
+        </Appear>
       ) : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         <FilterChip
@@ -156,6 +157,7 @@ function FilterChip({
 const styles = StyleSheet.create({
   wrap: { gap: tokens.spacing.sm },
   suggest: {
+    gap: 0,
     backgroundColor: tokens.color.surface.white,
     borderRadius: tokens.radius.md,
     borderWidth: 1,
